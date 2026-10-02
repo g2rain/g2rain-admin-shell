@@ -13,5 +13,7 @@
 | TPL-009 | Auth Bridge 经同页 `CustomEvent` 定向下发 `token` / `tokenKid` / **client 浅拷贝**（含私钥 JWK）；禁止 props / URL / storage / 日志 | 同页任意脚本可窃听；接受「同页可信微前端」模型 | 若改为隔离进程或 Token Exchange，更新契约后关闭 |
 | TPL-010 | 双协议兼容：默认模板为 AppKit 单协议；legacy 仅经 CLI `--with-legacy` 覆盖层（`legacy-overlay/` → `template-shell-legacy/`）。覆盖层在 mount/update 向 props 注入 `token`/`tokenKid`/`client`（查 registry） | Token-in-props 与 AppKit「公开 props 无敏感信息」短期分叉；同页泄露面与 TPL-009 同类 | 应用迁出 registry 并改走 Auth Bridge；全部迁移后删除覆盖层。默认模板不得含 `src/platform/legacy/`。详见[双协议兼容升级方案](legacy-compatibility-upgrade.md) |
 | TPL-011 | legacy `TOKEN_INVALID` 仅带 `data.applicationCode` 时由 `legacy-message-bridge` 解析活动/唯一实例后再 refresh（仅 `--with-legacy`） | 多实例同 applicationCode 且无激活 Tab 时无法路由，不得向错误实例回票 | Manager 改为定向信封（含 instanceId）或完成迁移后关闭 |
+| TPL-LEGACY-010 | **legacy 适配器**在 mount/update 时向 props 合并 `token` / `tokenKid` / `client`；仅 `LEGACY_APPLICATION_REGISTRY` 命中的应用走此路径；AppKit 仍禁止 props 带 Token | 与 AppKit「公开 props 无敏感信息」短期分叉；同页泄露面与 TPL-009 同类 | 该应用迁出 legacy registry 并改走 Auth Bridge 后删除注入；全部迁移后删除 `src/platform/legacy/` 覆盖层 |
+| TPL-LEGACY-011 | legacy `TOKEN_INVALID` 仅带 `data.applicationCode` 时由 `legacy-message-bridge` 解析活动/唯一实例后再 refresh | 多实例同 applicationCode 且无激活 Tab 时无法路由；不得向错误实例回票 | 子应用改为定向信封（含 instanceId）或完成迁移后关闭 |
 
 不得把上表临时状态复制为新生成主应用的长期默认模式。

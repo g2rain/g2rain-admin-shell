@@ -3,6 +3,7 @@ name: g2rain-admin-shell
 repository: g2rain/g2rain-admin-shell
 family: frontend-shell
 role: G2rain Main Shell 主应用（由 create-g2rain-app shell 生成）
+version: 1.0.1
 license: Apache-2.0
 architecture:
   centralRepository: g2rain/g2rain
@@ -62,7 +63,7 @@ generation:
     ref: "5f1f13524c27a9d086d536fdcb186d5880d3567f"
   contextPath: "admin"
   devServerPort: 3000
-  legacyCompatibility: false
+  legacyCompatibility: true
 
 commands:
   install: npm install
