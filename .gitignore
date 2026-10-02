@@ -1,0 +1,17 @@
+node_modules
+dist
+.DS_Store
+*.local
+.env.local
+.env.*.local
+.idea
+.vscode
+*.log
+
+# OpenResty Application-DPoP keys (runtime only)
+lua/keys/*
+!lua/keys/README.md
+!lua/keys/.gitkeep
+*.pem
+*.der
+!lua/luaossl-rel-20250929.tar.gz
