@@ -7,7 +7,7 @@ import type { LegacyIntegrationSpec } from './types'
  */
 export const LEGACY_APPLICATION_REGISTRY: Record<string, LegacyIntegrationSpec> = {
   // Example (do not ship business codes in the template overlay):
-  // 'g2rain-manager-app': { protocolVersion: 'legacy' },
+  'g2rain-manager-app': { protocolVersion: 'legacy' },
 }
 
 export function isLegacyApplication(applicationCode: string): boolean {
