@@ -52,10 +52,8 @@ onMounted(async () => {
   }
 
   message.value = '正在打开应用...'
-  if (await tryOpenTarget()) {
-    return
-  }
 
+  // Only watch (incl. immediate) — avoid onMounted + watch both calling tryOpenTarget.
   let stop: WatchStopHandle | null = null
   stop = watch(
     () => [menuStore.initialized, runtimeStore.definitions.size] as const,

@@ -1,5 +1,10 @@
 # Example Nginx config for the Main Shell static build.
-# Replace admin with the path segment without leading slash (e.g. admin).
+# Replace admin with THIS shell's context path segment (no leading slash).
+#
+# Critical for F5 on micro-app URLs (/member/..., /manager/...):
+# HTML document MUST fall back to THIS shell's index.html (e.g. /admin/index.html).
+# Do NOT fall back to another shell (e.g. /main/) — that loads the wrong SPA and
+# rewriteMicroDeepLinkToGateway will send the user to that shell's context path.
 
 server {
     listen       80;
@@ -8,13 +13,21 @@ server {
     root   /usr/share/nginx/html;
     index  index.html;
 
-    # SPA under context path
+    # SPA under this shell's context path
     location /admin/ {
         try_files $uri $uri/ /admin/index.html;
     }
 
     location = /admin {
         return 302 /admin/;
+    }
+
+    # Micro-app browser paths (document only): serve THIS shell SPA so deep-link
+    # restore can rewrite to /admin/redirect/{activeRule}/...
+    # Keep real static assets on the micro-app origin/location when present.
+    # Adjust the regex to the activeRules you host (examples: member, manager).
+    location ~ ^/(member|manager)(/|$) {
+        try_files $uri $uri/ /admin/index.html;
     }
 
     # Optional: proxy API to Gateway (adjust upstream in real deployments)

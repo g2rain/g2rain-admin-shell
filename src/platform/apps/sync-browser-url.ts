@@ -2,15 +2,19 @@ import type { WorkspaceTab } from '../types/workspace'
 import { useRuntimeStore } from '../stores/runtime.store'
 import { getContextPath } from '../../shared/env'
 import { replaceBrowserPathname, wrapActiveRule } from '../../shared/url'
+import { isDeepLinkLeavingGateway } from '../../runtime/navigation/deep-link-flags'
 
 /**
  * Sync browser address bar to the active Tab (main-shell TabBar semantics).
  * Uses history.replaceState only — does not drive Vue Router.
+ * Shell Context Path always comes from getContextPath() (VITE_CONTEXT_PATH), never hardcode /main.
  */
 export function syncBrowserAddressForTab(tab: WorkspaceTab | undefined | null): void {
   if (!tab) return
 
   if (tab.kind === 'shell') {
+    // While leaving /redirect gateway, skip shell URL sync — openMicro will write micro path next.
+    if (isDeepLinkLeavingGateway()) return
     const base = getContextPath().replace(/\/$/, '') || ''
     replaceBrowserPathname(base ? `${base}/` : '/')
     return

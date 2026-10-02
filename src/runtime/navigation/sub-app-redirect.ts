@@ -13,6 +13,7 @@ import { useMenuStore } from '../../platform/stores/menu.store'
 import { useRuntimeStore } from '../../platform/stores/runtime.store'
 import { useWorkspaceStore, OVERVIEW_TAB_ID } from '../../platform/stores/workspace.store'
 import { syncBrowserAddressForTab } from '../../platform/apps/sync-browser-url'
+import { isDeepLinkLeavingGateway, setDeepLinkLeavingGateway } from './deep-link-flags'
 import type { MenuItem } from '../../platform/types/menu.type'
 
 /** Browser address-bar gateway prefix, e.g. /admin/redirect */
@@ -26,6 +27,15 @@ export const REDIRECT_GATEWAY_ROUTE_PREFIX = '/redirect'
 export const RETURN_URL_STORAGE_KEY = 'return_url'
 
 let navigationRestored = false
+
+/** Single-flight: leave gateway + open tab + replaceState micro path. */
+let gatewayRestorePromise: Promise<boolean> | null = null
+
+export { isDeepLinkLeavingGateway } from './deep-link-flags'
+
+export function isDeepLinkRestorePending(): boolean {
+  return isDeepLinkLeavingGateway() || gatewayRestorePromise !== null || navigationRestored
+}
 
 function splitPathAndSuffix(fullPath: string): { pathname: string; suffix: string } {
   const q = fullPath.indexOf('?')
@@ -390,6 +400,14 @@ function openSubTarget(targetFullPath: string, internalPath?: string): boolean {
   return true
 }
 
+function openSubAndSyncBrowser(targetFullPath: string, internalPath: string): boolean {
+  const opened = openSubTarget(targetFullPath, internalPath)
+  if (opened) {
+    syncBrowserAddressForTab(useWorkspaceStore().activeTab)
+  }
+  return opened
+}
+
 /**
  * Apply gateway or real micro path to Workspace Tab.
  */
@@ -399,14 +417,45 @@ export function applyNavigationTarget(router: Router, fullPath: string): boolean
     if (!parsed) {
       return false
     }
-    const opened = openSubTarget(parsed.targetFullPath, parsed.internalPath)
+
+    if (gatewayRestorePromise) {
+      return true
+    }
+
+    const leaveGateway =
+      router.currentRoute.value.name === 'SubAppRedirectGateway' ||
+      isRedirectGatewayPath(router.currentRoute.value.fullPath)
+
+    if (leaveGateway) {
+      // Leave gateway first, then open tab + replaceState micro path (single-flight).
+      // Keep deepLinkLeavingGateway until after sync so overview Tab cannot write shell root URL.
+      const run = (async () => {
+        setDeepLinkLeavingGateway(true)
+        try {
+          await router.replace('/')
+          const opened = openSubAndSyncBrowser(parsed.targetFullPath, parsed.internalPath)
+          if (opened) {
+            navigationRestored = true
+          }
+          return opened
+        } catch {
+          return false
+        } finally {
+          setDeepLinkLeavingGateway(false)
+        }
+      })()
+      gatewayRestorePromise = run
+      void run.finally(() => {
+        if (gatewayRestorePromise === run) {
+          gatewayRestorePromise = null
+        }
+      })
+      return true
+    }
+
+    const opened = openSubAndSyncBrowser(parsed.targetFullPath, parsed.internalPath)
     if (opened) {
-      // Leave gateway bare page; keep Workspace address sync as source of truth.
-      if (router.currentRoute.value.name === 'SubAppRedirectGateway') {
-        void router.replace('/').then(() => {
-          syncBrowserAddressForTab(useWorkspaceStore().activeTab)
-        })
-      }
+      navigationRestored = true
     }
     return opened
   }
@@ -424,7 +473,10 @@ export function applyNavigationTarget(router: Router, fullPath: string): boolean
  * After SSO / menus ready — restore pending navigation (idempotent).
  */
 export function restoreAfterAuth(router: Router): boolean {
-  if (navigationRestored || !canRestoreNavigation()) {
+  if (navigationRestored || gatewayRestorePromise) {
+    return true
+  }
+  if (!canRestoreNavigation()) {
     return false
   }
 
@@ -442,15 +494,17 @@ export function restoreAfterAuth(router: Router): boolean {
     const browserPath = `${window.location.pathname}${window.location.search}${window.location.hash}`
     applied = applyNavigationTarget(router, browserPath)
   } else if (isRedirectGatewayPath(router.currentRoute.value.fullPath)) {
-    pending = router.currentRoute.value.fullPath
-    applied = applyNavigationTarget(router, pending)
+    // Already on gateway page: let SubAppRedirectGateway own the open (avoid double apply).
+    return false
   } else if (isRedirectGatewayPath(window.location.pathname)) {
     pending = `${window.location.pathname}${window.location.search}${window.location.hash}`
     applied = applyNavigationTarget(router, pending)
   }
 
   if (applied) {
-    navigationRestored = true
+    if (!gatewayRestorePromise) {
+      navigationRestored = true
+    }
     console.info('[SubAppRedirect] navigation restore done')
     return true
   }
@@ -472,6 +526,10 @@ export function handleRedirectGatewayWhenAuthed(
   router: Router,
   gatewayFullPath: string,
 ): boolean {
+  if (navigationRestored || gatewayRestorePromise) {
+    return true
+  }
+
   const parsed = parseRedirectGateway(gatewayFullPath)
   if (!parsed) {
     router.replace('/').catch(() => undefined)
