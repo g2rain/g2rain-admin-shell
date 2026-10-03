@@ -106,6 +106,7 @@ class SsoService {
       redirectUri,
       responseType: 'code',
       publicKey: JSON.stringify(store.client.publicKey),
+      applicationCode: getApplicationCode(),
     }).toString()
 
     store.persistSnapshot()
