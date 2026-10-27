@@ -12,6 +12,7 @@ import { useAccessTokenStore } from '../../platform/stores/token.store'
 import { useMenuStore } from '../../platform/stores/menu.store'
 import { useRuntimeStore } from '../../platform/stores/runtime.store'
 import { useWorkspaceStore, OVERVIEW_TAB_ID } from '../../platform/stores/workspace.store'
+import { findShellView } from '../../platform/menus/shell-menus'
 import { syncBrowserAddressForTab } from '../../platform/apps/sync-browser-url'
 import { isDeepLinkLeavingGateway, setDeepLinkLeavingGateway } from './deep-link-flags'
 import type { MenuItem } from '../../platform/types/menu.type'
@@ -166,7 +167,7 @@ export function parseRedirectGateway(fullPath: string): {
   }
 
   const contextPath = `/${segments[0]}`
-  const internalPath = stripActiveRule(contextPath, targetPathname)
+  const internalPath = `${stripActiveRule(contextPath, targetPathname)}${suffix}`
 
   return {
     targetFullPath,
@@ -271,7 +272,7 @@ export function findSubMenuItemByTargetPath(
   menuItems: MenuItem[],
   targetFullPath: string,
 ): { menuItem: MenuItem; internalPath: string } | null {
-  const { pathname } = splitPathAndSuffix(targetFullPath)
+  const { pathname, suffix } = splitPathAndSuffix(targetFullPath)
   const normalizedTarget = normalizePathname(pathname)
 
   const candidates: { menuItem: MenuItem; rule: string }[] = []
@@ -316,7 +317,7 @@ export function findSubMenuItemByTargetPath(
 
   return {
     menuItem: bestItem,
-    internalPath,
+    internalPath: `${internalPath}${suffix}`,
   }
 }
 
@@ -340,7 +341,7 @@ function canRestoreNavigation(): boolean {
   return true
 }
 
-function openSubTarget(targetFullPath: string, internalPath?: string): boolean {
+function openSubTarget(targetFullPath: string): boolean {
   const menuStore = useMenuStore()
   const workspace = useWorkspaceStore()
   const runtimeStore = useRuntimeStore()
@@ -365,7 +366,8 @@ function openSubTarget(targetFullPath: string, internalPath?: string): boolean {
   // internalPath from findSubMenuItemByTargetPath / parseRedirectGateway is already
   // stripped from the browser URL. Do NOT strip again: internal routes may equal
   // contextPath (activeRule=/member, internal=/member → browser /member/member).
-  const pathToRemember = internalPath ?? resolved.internalPath
+  // 内部路径只按菜单里最长匹配的 activeRule 剥离一次：多段 activeRule（如 /biz/member）不能只去掉第一段
+  const pathToRemember = resolved.internalPath
   const initialRoute = pathToRemember.startsWith('/') ? pathToRemember : `/${pathToRemember}`
 
   const viewId = menuItem.viewId ?? microAppViewIdFromMenuKey(menuItem.key)
@@ -400,12 +402,26 @@ function openSubTarget(targetFullPath: string, internalPath?: string): boolean {
   return true
 }
 
-function openSubAndSyncBrowser(targetFullPath: string, internalPath: string): boolean {
-  const opened = openSubTarget(targetFullPath, internalPath)
+function openSubAndSyncBrowser(targetFullPath: string): boolean {
+  const opened = openSubTarget(targetFullPath)
   if (opened) {
     syncBrowserAddressForTab(useWorkspaceStore().activeTab)
   }
   return opened
+}
+
+/** 壳内 Shell 页面地址（如 /admin/passport）→ 打开对应 Shell Tab */
+function openShellTarget(fullPath: string): boolean {
+  const ctx = normalizePathname(getContextPath())
+  let routePath = normalizePathname(splitPathAndSuffix(fullPath).pathname)
+  if (ctx !== '/') {
+    if (routePath !== ctx && !routePath.startsWith(`${ctx}/`)) return false
+    routePath = routePath.slice(ctx.length) || '/'
+  }
+  const view = findShellView(routePath)
+  if (!view) return false
+  useWorkspaceStore().openShellView(view)
+  return true
 }
 
 /**
@@ -433,7 +449,7 @@ export function applyNavigationTarget(router: Router, fullPath: string): boolean
         setDeepLinkLeavingGateway(true)
         try {
           await router.replace('/')
-          const opened = openSubAndSyncBrowser(parsed.targetFullPath, parsed.internalPath)
+          const opened = openSubAndSyncBrowser(parsed.targetFullPath)
           if (opened) {
             navigationRestored = true
           }
@@ -453,17 +469,21 @@ export function applyNavigationTarget(router: Router, fullPath: string): boolean
       return true
     }
 
-    const opened = openSubAndSyncBrowser(parsed.targetFullPath, parsed.internalPath)
+    const opened = openSubAndSyncBrowser(parsed.targetFullPath)
     if (opened) {
       navigationRestored = true
     }
     return opened
   }
 
+  if (openShellTarget(fullPath)) {
+    return true
+  }
+
   const menuStore = useMenuStore()
   const subResolved = findSubMenuItemByTargetPath(menuStore.menuItems, fullPath)
   if (subResolved) {
-    return openSubTarget(fullPath, subResolved.internalPath)
+    return openSubTarget(fullPath)
   }
 
   return false

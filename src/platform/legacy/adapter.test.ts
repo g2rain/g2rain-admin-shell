@@ -4,11 +4,11 @@ import {
   getLegacyIntegration,
   isLegacyApplication,
   LEGACY_APPLICATION_REGISTRY,
-} from './registry.ts'
+} from './registry'
 import {
   hasAmbiguousLegacyInstances,
   resolveLegacyInstance,
-} from './resolve-instance.ts'
+} from './resolve-instance'
 
 describe('legacy registry', () => {
   const sampleCode = '__test-legacy-app__'
