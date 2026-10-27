@@ -195,7 +195,10 @@ export function saveReturnUrl(fullPath?: string): void {
   const ctx = normalizePathname(getContextPath())
   if (ctx !== '/' && (pathname === ctx || pathname.startsWith(`${ctx}/`))) {
     if (!isRedirectGatewayPath(pathname)) {
-      // Stay within shell — no micro restore needed
+      // 壳内页面也需要在 SSO 后恢复；根页无需覆盖已有待恢复地址。
+      if (normalizePathname(pathname) !== ctx) {
+        localStorage.setItem(RETURN_URL_STORAGE_KEY, raw)
+      }
       return
     }
   }
@@ -299,10 +302,11 @@ export function findSubMenuItemByTargetPath(
   const longestRule = candidates.reduce((a, b) => (a.rule.length >= b.rule.length ? a : b)).rule
   const internalPath = stripActiveRule(longestRule, normalizedTarget)
 
-  const matching = candidates.filter((c) =>
+  const sameRule = candidates.filter((candidate) => candidate.rule === longestRule)
+  const matching = sameRule.filter((c) =>
     menuItemMatchesInternalPath(c.menuItem, internalPath),
   )
-  const pool = matching.length > 0 ? matching : candidates
+  const pool = matching.length > 0 ? matching : sameRule
 
   let bestItem = pool[0].menuItem
   let bestScore = scoreSubMenuItemForInternalPath(bestItem, pool[0].rule, internalPath)
