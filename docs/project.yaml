@@ -63,7 +63,7 @@ generation:
     ref: "5f1f13524c27a9d086d536fdcb186d5880d3567f"
   contextPath: "admin"
   devServerPort: 3000
-  legacyCompatibility: true
+  legacyCompatibility: false
 
 commands:
   install: npm install

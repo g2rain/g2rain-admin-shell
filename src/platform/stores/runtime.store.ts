@@ -26,7 +26,7 @@ export function getSharedRuntimeLoader(): RuntimeAdapter {
 
 /**
  * Sole RuntimeStore extension point for protocol selection.
- * Default is AppKit-only; `--with-legacy` replaces via shell-extensions.
+ * Default is AppKit-only; shell-extensions may replace the resolver.
  */
 export function setAdapterResolver(next: AdapterResolver): void {
   resolveAdapter = next

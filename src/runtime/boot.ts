@@ -63,7 +63,7 @@ export async function boot(): Promise<App> {
     },
   })
 
-  // Optional overlay (e.g. --with-legacy) installs AdapterResolver / bridges here.
+  // Extension hook (default no-op; AppKit-only).
   installShellExtensions()
 
   startTokenInvalidHandler()

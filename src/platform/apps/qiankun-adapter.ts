@@ -43,7 +43,7 @@ export function createQiankunAdapter(): RuntimeAdapter {
       const containerSelector =
         typeof input.container === 'string' ? input.container : `#${input.container.id}`
 
-      // Never log props (may contain legacy token fields at the loader boundary).
+      // Never log props (may contain sensitive fields at the loader boundary).
       console.info('[QiankunAdapter] loadMicroApp', {
         name: input.name,
         entry: input.entry,

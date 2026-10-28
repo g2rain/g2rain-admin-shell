@@ -48,7 +48,7 @@ npm run preview
 2. 子应用 `entry` **只**使用菜单返回的 `endpointUrl`（origin）；`menu.store` 再 join `contextPath` 与尾斜杠。本地联调请在 **Mock / 后端菜单数据** 中配置正确 origin（例如 `//localhost:3001`），**不要**在 `menu.api.ts` 写 DEV 覆盖表。
 3. 启动已接 `@g2rain/platform/sub` 的子应用（推荐 `g2rain-member-app`）。
 4. 点击 `sub` 菜单：控制台应出现 `[QiankunAdapter] loadMicroApp`（`name` 必须为 **`g2rain-member-app`**；`instanceId` 形如 `g2rain-member-app:13638`，**不**拼进 name）；`entry` 必须为 **`//localhost:3001/member/`**（尾斜杠；`/member` 无尾斜杠会 404）。Network 确认 `GET .../member/` → 200 HTML。
-5. 核对公开 props：**无 Token**（legacy 经 adapter 注入除外）；`contextPath` / `activeRule` 为**子应用**前缀（不是 Shell 自身 Context Path）。
+5. 核对公开 props：**无 Token**；`contextPath` / `activeRule` 为**子应用**前缀（不是 Shell 自身 Context Path）。
 6. entry 仅来自 menus / Mock，勿从 URL query 读取。
 7. 同应用多菜单：各 Tab 独立 `instanceId` / 容器；切 Tab 不 unmount；关 Tab 只卸对应实例。
 

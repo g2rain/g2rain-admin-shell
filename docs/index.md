@@ -9,7 +9,7 @@
 - [层次](architecture/layers.md)
 - [依赖规则](architecture/dependencies.md)
 - [运行流程](architecture/runtime-flows.md)
-- [双协议兼容升级方案](architecture/legacy-compatibility-upgrade.md)
+- [双协议兼容升级方案（归档；本仓已退出覆盖层）](architecture/legacy-compatibility-upgrade.md)
 - [已知偏差](architecture/deviations.md)
 - [本地开发](development/local-development.md)
 - [测试策略](development/testing.md)

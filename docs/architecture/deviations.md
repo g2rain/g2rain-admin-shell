@@ -11,9 +11,9 @@
 | TPL-007 | Token 持久化于 `localStorage` 键 `g2rain-shell-token:${applicationCode}`（旧固定键一次性迁移） | XSS / 共享设备有落盘风险 | 评估 HttpOnly 会话或缩短 refresh；禁止 `console.log` 整包消息 |
 | TPL-008 | `loadMicroApp.name` 固定为 `applicationCode`（对齐 vite-plugin-qiankun），**不用** main-shell 的 `` `${name}__${instanceId}` `` | 与 main-shell 命名策略分叉；同应用多实例依赖 qiankun 同名多 load + 子应用按 instanceId 隔离 | 中央 Profile / Appkit 统一多实例命名契约后收敛 |
 | TPL-009 | Auth Bridge 经同页 `CustomEvent` 定向下发 `token` / `tokenKid` / **client 浅拷贝**（含私钥 JWK）；禁止 props / URL / storage / 日志 | 同页任意脚本可窃听；接受「同页可信微前端」模型 | 若改为隔离进程或 Token Exchange，更新契约后关闭 |
-| TPL-010 | 双协议兼容：默认模板为 AppKit 单协议；legacy 仅经 CLI `--with-legacy` 覆盖层（`legacy-overlay/` → `template-shell-legacy/`）。覆盖层在 mount/update 向 props 注入 `token`/`tokenKid`/`client`（查 registry） | Token-in-props 与 AppKit「公开 props 无敏感信息」短期分叉；同页泄露面与 TPL-009 同类 | 应用迁出 registry 并改走 Auth Bridge；全部迁移后删除覆盖层。默认模板不得含 `src/platform/legacy/`。详见[双协议兼容升级方案](legacy-compatibility-upgrade.md) |
-| TPL-011 | legacy `TOKEN_INVALID` 仅带 `data.applicationCode` 时由 `legacy-message-bridge` 解析活动/唯一实例后再 refresh（仅 `--with-legacy`） | 多实例同 applicationCode 且无激活 Tab 时无法路由，不得向错误实例回票 | Manager 改为定向信封（含 instanceId）或完成迁移后关闭 |
-| TPL-LEGACY-010 | **legacy 适配器**在 mount/update 时向 props 合并 `token` / `tokenKid` / `client`；仅 `LEGACY_APPLICATION_REGISTRY` 命中的应用走此路径；AppKit 仍禁止 props 带 Token | 与 AppKit「公开 props 无敏感信息」短期分叉；同页泄露面与 TPL-009 同类 | 该应用迁出 legacy registry 并改走 Auth Bridge 后删除注入；全部迁移后删除 `src/platform/legacy/` 覆盖层 |
-| TPL-LEGACY-011 | legacy `TOKEN_INVALID` 仅带 `data.applicationCode` 时由 `legacy-message-bridge` 解析活动/唯一实例后再 refresh | 多实例同 applicationCode 且无激活 Tab 时无法路由；不得向错误实例回票 | 子应用改为定向信封（含 instanceId）或完成迁移后关闭 |
+| TPL-010 | ~~双协议 / `--with-legacy` 覆盖层~~ | — | **已关闭**（本仓已删除 `platform/legacy` 与 `legacy-message-bridge`；`shell-extensions` 为空实现；`legacyCompatibility: false`） |
+| TPL-011 | ~~legacy TOKEN_INVALID 仅 applicationCode 路由~~ | — | **已关闭**（随覆盖层删除） |
+| TPL-LEGACY-010 | ~~legacy 适配器 Token-in-props~~ | — | **已关闭**（随覆盖层删除） |
+| TPL-LEGACY-011 | ~~legacy-message-bridge~~ | — | **已关闭**（随覆盖层删除） |
 
 不得把上表临时状态复制为新生成主应用的长期默认模式。
