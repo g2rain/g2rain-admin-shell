@@ -3,26 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>g2rain-admin-shell</title>
+    <title>谷雨G2rain-管理平台</title>
+    <link rel="icon" type="image/png" href="favicon.png" />
     <!-- Runtime env (must load before app; path injected from VITE_CONTEXT_PATH) -->
     <script>
-      ;(function () {
-        window._env_ = window._env_ || {}
+      (function () {
+        window._env_ = window._env_ || {};
         window.__g2rainEnvConfigReady__ = new Promise(function (resolve) {
-          var script = document.createElement('script')
-          var basePath = '__G2RAIN_APP_CONTEXT_PATH__'
-          script.src = (basePath === '/' ? '' : basePath) + '/env-config.js'
+          var script = document.createElement("script");
+          var basePath = "__G2RAIN_APP_CONTEXT_PATH__";
+          script.src = (basePath === "/" ? "" : basePath) + "/env-config.js";
           script.onload = function () {
-            resolve()
-          }
+            resolve();
+          };
           script.onerror = function () {
             // Local vite dev has no env-config.js; fall back to import.meta.env
-            console.log('[env-config] env-config.js not found; using build-time env')
-            resolve()
-          }
-          document.head.appendChild(script)
-        })
-      })()
+            console.log(
+              "[env-config] env-config.js not found; using build-time env",
+            );
+            resolve();
+          };
+          document.head.appendChild(script);
+        });
+      })();
     </script>
   </head>
   <body>
