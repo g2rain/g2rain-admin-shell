@@ -6,7 +6,7 @@
 
 import type { Router } from 'vue-router'
 import { getContextPath, getPathWithContextPath } from '../../shared/env'
-import { stripActiveRule } from '../../shared/url'
+import { setShellParam, stripActiveRule } from '../../shared/url'
 import { microAppInstanceId, microAppViewIdFromMenuKey } from '../../shared/qiankun-id'
 import { useAccessTokenStore } from '../../platform/stores/token.store'
 import { useMenuStore } from '../../platform/stores/menu.store'
@@ -141,7 +141,8 @@ export function parseRedirectGateway(fullPath: string): {
   contextPath: string
   internalPath: string
 } | null {
-  const { pathname, suffix } = splitPathAndSuffix(fullPath)
+  // g2shell 只用于选择宿主，不传给子应用
+  const { pathname, suffix } = splitPathAndSuffix(setShellParam(fullPath, null))
   const normalized = normalizePathname(pathname)
 
   let rest = ''
@@ -431,7 +432,9 @@ function openShellTarget(fullPath: string): boolean {
 /**
  * Apply gateway or real micro path to Workspace Tab.
  */
-export function applyNavigationTarget(router: Router, fullPath: string): boolean {
+export function applyNavigationTarget(router: Router, target: string): boolean {
+  // g2shell 只用于选择宿主，不进入子应用的 initialRoute
+  const fullPath = setShellParam(target, null)
   if (isRedirectGatewayPath(fullPath)) {
     const parsed = parseRedirectGateway(fullPath)
     if (!parsed) {
