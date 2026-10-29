@@ -25,7 +25,10 @@ export function getRedirectGatewayPrefix(): string {
 /** Vue Router path under history base */
 export const REDIRECT_GATEWAY_ROUTE_PREFIX = '/redirect'
 
-export const RETURN_URL_STORAGE_KEY = 'return_url'
+/** 按壳隔离的回跳地址 key：同域多个壳同时重新登录时互不覆盖 */
+export function returnUrlKey(): string {
+  return `return_url:${getContextPath()}`
+}
 
 let navigationRestored = false
 
@@ -188,7 +191,7 @@ export function saveReturnUrl(fullPath?: string): void {
   }
 
   if (isRedirectGatewayPath(pathname)) {
-    localStorage.setItem(RETURN_URL_STORAGE_KEY, normalizeToBrowserGatewayPath(raw))
+    localStorage.setItem(returnUrlKey(), normalizeToBrowserGatewayPath(raw))
     return
   }
 
@@ -198,29 +201,29 @@ export function saveReturnUrl(fullPath?: string): void {
     if (!isRedirectGatewayPath(pathname)) {
       // 壳内页面也需要在 SSO 后恢复；根页无需覆盖已有待恢复地址。
       if (normalizePathname(pathname) !== ctx) {
-        localStorage.setItem(RETURN_URL_STORAGE_KEY, raw)
+        localStorage.setItem(returnUrlKey(), raw)
       }
       return
     }
   }
 
-  localStorage.setItem(RETURN_URL_STORAGE_KEY, buildRedirectGatewayFromTarget(raw))
+  localStorage.setItem(returnUrlKey(), buildRedirectGatewayFromTarget(raw))
 }
 
 export function peekReturnUrl(): string | null {
-  return localStorage.getItem(RETURN_URL_STORAGE_KEY)
+  return localStorage.getItem(returnUrlKey())
 }
 
 export function consumeReturnUrl(): string | null {
-  const value = localStorage.getItem(RETURN_URL_STORAGE_KEY)
+  const value = localStorage.getItem(returnUrlKey())
   if (value) {
-    localStorage.removeItem(RETURN_URL_STORAGE_KEY)
+    localStorage.removeItem(returnUrlKey())
   }
   return value
 }
 
 export function clearReturnUrl(): void {
-  localStorage.removeItem(RETURN_URL_STORAGE_KEY)
+  localStorage.removeItem(returnUrlKey())
 }
 
 export function resetNavigationRestoreState(): void {
