@@ -93,7 +93,7 @@ export class DictItemApi {
 
     const http = getHttpClient()
     const promise = (async () => {
-      const res = await http.client.get<DictItem[]>(LOCALIZED_OPTIONS_PATH, { params: query })
+      const res = await http.client.get<DictItem[]>(LOCALIZED_OPTIONS_PATH, query)
       return (res.data || []) as unknown as RemoteSelectOption[]
     })()
 

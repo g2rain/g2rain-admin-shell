@@ -35,7 +35,7 @@ export class PassportIdpBindingApi {
     const params: PassportIdpBindingQuery = { passportId }
     const res = await http.client.get<PassportIdpBinding[]>(
       '/basis/passport_idp_binding/list',
-      { params },
+      params,
     )
     return res.data ?? []
   }
