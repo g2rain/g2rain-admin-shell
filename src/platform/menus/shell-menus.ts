@@ -4,12 +4,15 @@ import type { WorkspaceView } from '../types/workspace'
 /** Default Shell-local menus — always prepended before backend authority menus. */
 export interface ShellMenuItem {
   key: string
+  /** i18n key，与 main-shell createDefaultMenus 对齐 */
+  menuCode: string
   title: string
   view: WorkspaceView
 }
 
 export interface ShellMenuGroup {
   key: string
+  menuCode: string
   title: string
   children: ShellMenuItem[]
 }
@@ -24,10 +27,12 @@ function isShellMenuGroup(node: ShellMenuNode): node is ShellMenuGroup {
 export const SHELL_MENUS: ShellMenuNode[] = [
   {
     key: 'overview',
+    menuCode: 'main',
     title: '首页',
     view: {
       viewId: 'shell.overview',
       title: '首页',
+      menuCode: 'main',
       kind: 'shell',
       closable: false,
       shellPage: 'overview',
@@ -35,14 +40,17 @@ export const SHELL_MENUS: ShellMenuNode[] = [
   },
   {
     key: 'init',
+    menuCode: 'init',
     title: '初始化',
     children: [
       {
         key: 'passport',
+        menuCode: 'init-passport',
         title: '账号管理',
         view: {
           viewId: 'shell.passport',
           title: '账号管理',
+          menuCode: 'init-passport',
           kind: 'shell',
           closable: true,
           shellPage: 'passport',
@@ -50,10 +58,12 @@ export const SHELL_MENUS: ShellMenuNode[] = [
       },
       {
         key: 'tenant-provision',
+        menuCode: 'init-tenant_provision',
         title: '租户初始化',
         view: {
           viewId: 'shell.tenant-provision',
           title: '租户初始化',
+          menuCode: 'init-tenant_provision',
           kind: 'shell',
           closable: true,
           shellPage: 'tenant-provision',
@@ -83,7 +93,7 @@ export function findShellView(routePath: string): WorkspaceView | undefined {
 function shellItemAsMenuItem(item: ShellMenuItem): MenuItem {
   return {
     key: `shell.${item.key}`,
-    menuCode: item.key,
+    menuCode: item.menuCode,
     title: item.title,
     type: 'shell',
     shellPage: item.view.shellPage,
@@ -98,7 +108,7 @@ export function shellMenusAsMenuItems(): MenuItem[] {
     if (isShellMenuGroup(node)) {
       return {
         key: `shell.${node.key}`,
-        menuCode: node.key,
+        menuCode: node.menuCode,
         title: node.title,
         type: 'group' as const,
         children: node.children.map(shellItemAsMenuItem),

@@ -35,6 +35,7 @@ function onSelect(item: MenuItem): void {
     workspace.openShellView({
       viewId: item.viewId,
       title: item.title,
+      menuCode: item.menuCode,
       kind: 'shell',
       closable: item.closable ?? true,
       shellPage: item.shellPage,
@@ -68,6 +69,7 @@ function onSelect(item: MenuItem): void {
     const view: WorkspaceView = {
       viewId,
       title: item.title,
+      menuCode: item.menuCode,
       kind: 'micro-app',
       closable: true,
       applicationCode: item.name,

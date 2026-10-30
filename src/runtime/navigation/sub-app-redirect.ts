@@ -390,6 +390,7 @@ function openSubTarget(targetFullPath: string): boolean {
     .openMicroAppView({
       viewId,
       title: menuItem.title,
+      menuCode: menuItem.menuCode,
       kind: 'micro-app',
       closable: menuItem.closable ?? true,
       applicationCode,

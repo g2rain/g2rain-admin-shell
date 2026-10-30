@@ -59,7 +59,8 @@ function goPassport(): void {
   void router.replace('/').then(() => {
     workspace.openShellView({
       viewId: 'shell.passport',
-      title: t('MS_PP_TITLE', '账号管理'),
+      title: '账号管理',
+      menuCode: 'init-passport',
       kind: 'shell',
       closable: true,
       shellPage: 'passport',
