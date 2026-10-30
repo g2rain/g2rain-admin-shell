@@ -19,10 +19,8 @@ export interface I18nLocaleMessage {
 export async function fetchI18nLocaleMessages(locale: string): Promise<I18nLocaleMessage[]> {
   const http = getAuthHttpClient()
   const response = await http.client.get<I18nLocaleMessage[]>('/api/infra/i18n_message/locale', {
-    params: {
-      tags: getI18nTags(),
-      locale: locale.trim(),
-    },
+    tags: getI18nTags(),
+    locale: locale.trim(),
   })
   const result = response as unknown as Result<I18nLocaleMessage[]>
   return result.data ?? []
