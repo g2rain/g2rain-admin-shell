@@ -1,24 +1,28 @@
 <template>
   <div class="logout-page">
     <div class="panel">
-      <h1>{{ projectName }}</h1>
-      <h2>您已安全退出</h2>
+      <h1>{{ $t('MS_HDR_LOGO', '谷雨开源SaaS平台') }}</h1>
+      <h2>{{ $t('MS_AU_LOGOUT_TITLE', '您已安全退出') }}</h2>
       <p>
-        账户已在本应用退出。如需彻底退出，请访问
-        <a href="javascript:void(0)" @click.prevent="gotoSsoIndex">IAM 系统</a>
-        。系统将在 {{ countdown }} 秒后自动跳转。
+        {{ $t('MS_AU_LOGOUT_DESC_PREFIX', '感谢您使用 谷雨开源SaaS平台。您的账户已在本应用退出，如果要彻底退出请访问') }}
+        <a href="javascript:void(0)" @click.prevent="gotoSsoIndex">
+          {{ $t('MS_AU_IAM_LINK', '谷雨开源SaaS平台 IAM系统') }}
+        </a>
+        {{ $t('MS_AU_LOGOUT_DESC_SUFFIX', '，系统将在') }}
+        {{ countdown }}
+        {{ $t('MS_AU_LOGOUT_COUNTDOWN', '秒后自动跳转。') }}
       </p>
-      <button type="button" class="btn primary" @click="relogin">重新登录</button>
+      <button type="button" class="btn primary" @click="relogin">
+        {{ $t('MS_AU_RELOGIN', '重新登录') }}
+      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
-import { PROJECT_NAME } from '../../shared/project'
 import { sso } from '../../runtime/auth/sso'
 
-const projectName = PROJECT_NAME
 const countdown = ref(5)
 let timer: number | null = null
 

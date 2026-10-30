@@ -95,3 +95,14 @@ export function getDingTalkBindMode(): string {
   const raw = getEnvVar('VITE_DINGTALK_BIND_MODE', import.meta.env.VITE_DINGTALK_BIND_MODE || 'INTERNAL')
   return raw.trim() || 'INTERNAL'
 }
+
+/**
+ * UI 文案 tag：先共享再应用（与 main-shell 同键时可复用 MAIN_SHELL 包）。
+ * 后续若拆 ADMIN_SHELL 专属文案，改为 G2RAIN_SHARED,ADMIN_SHELL 即可。
+ */
+export function getI18nTags(): string {
+  return getEnvVar(
+    'VITE_I18N_TAGS',
+    import.meta.env.VITE_I18N_TAGS || 'G2RAIN_SHARED,MAIN_SHELL',
+  )
+}

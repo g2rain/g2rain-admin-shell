@@ -1,8 +1,7 @@
 import { ref, shallowRef } from 'vue'
 import { ElMessage } from 'element-plus'
+import { t } from '../../../platform/i18n'
 import { buildBindReturnUrl, IdpBindApi, parseIamResult } from './api'
-
-const t = (_key: string, fallback: string) => fallback
 
 const DD_LOGIN_SRC = 'https://g.alicdn.com/dingding/dinglogin/0.0.5/ddLogin.js'
 const QR_CONTAINER_ID = 'dingtalk-passport-bind-qr'

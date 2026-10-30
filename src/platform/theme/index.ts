@@ -1,5 +1,8 @@
 import { createThemeController, type G2rainTheme, type ThemeController } from '@g2rain/platform/theme'
 
+export type { ThemeMode, ThemeConfig } from './types'
+export { THEME_MODES } from './types'
+
 const STORAGE_KEY = 'g2rain-shell-theme'
 
 let controller: ThemeController | undefined

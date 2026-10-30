@@ -1,34 +1,34 @@
-﻿<template>
+<template>
   <div class="passport-page">
     <!-- 页面标题 -->
     <div class="passport-page__header">
-      <h2>{{ '账号管理' }}</h2>
+      <h2>{{ $t('MS_PP_TITLE', '账号管理') }}</h2>
     </div>
 
     <!-- 用户信息展示 -->
     <el-card class="passport-page__info-card" shadow="never">
       <template #header>
         <div class="card-header">
-          <span>{{ '用户信息' }}</span>
+          <span>{{ $t('MS_PP_USER_INFO', '用户信息') }}</span>
         </div>
       </template>
       <el-descriptions :column="2" border v-loading="loading">
-        <el-descriptions-item :label="'真实姓名'">
+        <el-descriptions-item :label="$t('G2_FIELD_REAL_NAME', '真实姓名')">
           {{ userInfo?.realName || '-' }}
         </el-descriptions-item>
-        <el-descriptions-item :label="'手机号'">
+        <el-descriptions-item :label="$t('G2_FIELD_MOBILE', '手机号')">
           {{ userInfo?.mobile || '-' }}
         </el-descriptions-item>
-        <el-descriptions-item :label="'邮箱'">
+        <el-descriptions-item :label="$t('G2_FIELD_EMAIL', '邮箱')">
           {{ userInfo?.email || '-' }}
         </el-descriptions-item>
-        <el-descriptions-item :label="'管理员'">
-          {{ userInfo?.admin ? '是' : '否' }}
+        <el-descriptions-item :label="$t('G2_FIELD_ADMIN', '管理员')">
+          {{ userInfo?.admin ? $t('G2_OPT_YES', '是') : $t('G2_OPT_NO', '否') }}
         </el-descriptions-item>
-        <el-descriptions-item :label="'创建时间'">
+        <el-descriptions-item :label="$t('G2_FIELD_CREATE_TIME', '创建时间')">
           {{ userInfo?.createTime || '-' }}
         </el-descriptions-item>
-        <el-descriptions-item :label="'更新时间'">
+        <el-descriptions-item :label="$t('G2_FIELD_UPDATE_TIME', '更新时间')">
           {{ userInfo?.updateTime || '-' }}
         </el-descriptions-item>
       </el-descriptions>
@@ -38,38 +38,38 @@
     <el-card class="passport-page__info-card" shadow="never">
       <template #header>
         <div class="card-header">
-          <span>{{ '账号信息' }}</span>
+          <span>{{ $t('MS_PP_ACCOUNT_INFO', '账号信息') }}</span>
         </div>
       </template>
       <el-descriptions :column="2" border v-loading="loading">
-        <el-descriptions-item :label="'用户名'">
+        <el-descriptions-item :label="$t('G2_FIELD_USERNAME', '用户名')">
           {{ passportInfo?.username || '-' }}
         </el-descriptions-item>
-        <el-descriptions-item :label="'真实姓名'">
+        <el-descriptions-item :label="$t('G2_FIELD_REAL_NAME', '真实姓名')">
           {{ passportInfo?.realName || '-' }}
         </el-descriptions-item>
-        <el-descriptions-item :label="'性别'">
-          {{ formatSex(passportInfo?.sex) }}
+        <el-descriptions-item :label="$t('G2_FIELD_SEX', '性别')">
+          <DictText :value="passportInfo?.sex" usage-code="SEX" :api-method="DictItemApi.select" />
         </el-descriptions-item>
-        <el-descriptions-item :label="'生日'">
+        <el-descriptions-item :label="$t('G2_FIELD_BIRTHDAY', '生日')">
           {{ passportInfo?.birthday || '-' }}
         </el-descriptions-item>
-        <el-descriptions-item :label="'身份证号'">
+        <el-descriptions-item :label="$t('G2_FIELD_ID_NO', '身份证号')">
           {{ passportInfo?.idNo || '-' }}
         </el-descriptions-item>
-        <el-descriptions-item :label="'手机号'">
+        <el-descriptions-item :label="$t('G2_FIELD_MOBILE', '手机号')">
           {{ passportInfo?.mobile || '-' }}
         </el-descriptions-item>
-        <el-descriptions-item :label="'邮箱'">
+        <el-descriptions-item :label="$t('G2_FIELD_EMAIL', '邮箱')">
           {{ passportInfo?.email || '-' }}
         </el-descriptions-item>
-        <el-descriptions-item :label="'状态'">
-          {{ passportInfo?.status || '-' }}
+        <el-descriptions-item :label="$t('G2_FIELD_STATUS', '状态')">
+          <DictText :value="passportInfo?.status" usage-code="PASSPORT_STATUS" :api-method="DictItemApi.select" />
         </el-descriptions-item>
-        <el-descriptions-item :label="'创建时间'">
+        <el-descriptions-item :label="$t('G2_FIELD_CREATE_TIME', '创建时间')">
           {{ passportInfo?.createTime || '-' }}
         </el-descriptions-item>
-        <el-descriptions-item :label="'更新时间'">
+        <el-descriptions-item :label="$t('G2_FIELD_UPDATE_TIME', '更新时间')">
           {{ passportInfo?.updateTime || '-' }}
         </el-descriptions-item>
       </el-descriptions>
@@ -79,9 +79,9 @@
     <el-card class="passport-page__info-card" shadow="never">
       <template #header>
         <div class="card-header">
-          <span>{{ '三方应用绑定' }}</span>
+          <span>{{ $t('MS_PP_IDP_BIND', '三方应用绑定') }}</span>
           <el-button type="primary" link :loading="idpBindingLoading" @click="loadIdpBindings">
-            {{ '刷新' }}
+            {{ $t('G2_BTN_REFRESH', '刷新') }}
           </el-button>
         </div>
       </template>
@@ -90,52 +90,54 @@
         :data="idpBindingList"
         border
         stripe
-        :empty-text="'暂未绑定任何三方应用'"
+        :empty-text="$t('MS_PP_IDP_EMPTY', '暂未绑定任何三方应用')"
         style="width: 100%"
       >
-        <el-table-column prop="idpType" :label="'身份源'" width="120">
+        <el-table-column prop="idpType" :label="$t('MS_PP_IDP_TYPE', '身份源')" width="120">
           <template #default="{ row }">
-            <el-tag effect="light" type="info">{{ formatIdpType(row?.idpType) }}</el-tag>
+            <el-tag effect="light" type="info">
+              <DictText :value="row?.idpType" usage-code="PASSPORT_IDP_TYPE" :api-method="DictItemApi.select" />
+            </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="bindMode" :label="'接入形态'" width="130">
+        <el-table-column prop="bindMode" :label="$t('MS_PP_BIND_MODE', '接入形态')" width="130">
           <template #default="{ row }">
-            {{ formatBindMode(row?.bindMode) }}
+            <DictText :value="row?.bindMode" usage-code="IDP_BIND_MODE" :api-method="DictItemApi.select" />
           </template>
         </el-table-column>
         <el-table-column
           prop="corpId"
-          :label="'企业 ID'"
+          :label="$t('MS_PP_CORP_ID', '企业 ID')"
           min-width="160"
           show-overflow-tooltip
         />
         <el-table-column
           prop="idpSubject"
-          :label="'主体标识 (unionId)'"
+          :label="$t('MS_PP_IDP_SUBJECT', '主体标识 (unionId)')"
           min-width="180"
           show-overflow-tooltip
         />
         <el-table-column
           prop="idpUserId"
-          :label="'用户 ID'"
+          :label="$t('MS_PP_IDP_USER', '用户 ID')"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           prop="idpApplicationCode"
-          :label="'应用标识'"
+          :label="$t('MS_PP_APP_CODE', '应用标识')"
           min-width="140"
           show-overflow-tooltip
         />
         <el-table-column
           prop="createTime"
-          :label="'绑定时间'"
+          :label="$t('MS_PP_BIND_TIME', '绑定时间')"
           width="170"
         />
-        <el-table-column :label="'操作'" width="90" fixed="right">
+        <el-table-column :label="$t('G2_FIELD_ACTION', '操作')" width="90" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link size="small" @click="openIdpBindingDetail(row)">
-              {{ '详情' }}
+              {{ $t('G2_BTN_DETAIL', '详情') }}
             </el-button>
           </template>
         </el-table-column>
@@ -145,20 +147,20 @@
     <!-- 功能按钮区域 -->
     <div class="passport-page__actions">
       <el-button type="primary" @click="handleEditPassport">
-        {{ '更新账号信息' }}
+        {{ $t('MS_PP_UPDATE_ACCOUNT', '更新账号信息') }}
       </el-button>
       <el-button type="warning" @click="handleChangePassword">
-        {{ '修改密码' }}
+        {{ $t('MS_PP_CHANGE_PWD', '修改密码') }}
       </el-button>
       <el-button type="success" :loading="dingTalkBindLoading" @click="openDingTalkBind">
-        {{ '绑定钉钉' }}
+        {{ $t('MS_PP_BIND_DING', '绑定钉钉') }}
       </el-button>
     </div>
 
     <!-- 更新Passport信息弹窗 -->
     <el-dialog
       v-model="dingTalkBindVisible"
-      :title="'绑定钉钉'"
+      :title="$t('MS_PP_BIND_DING', '绑定钉钉')"
       width="420px"
       destroy-on-close
       @open="onDingTalkBindOpen"
@@ -177,33 +179,33 @@
     <!-- 修改密码弹窗 -->
     <el-dialog
       v-model="idpBindingDetailVisible"
-      :title="'绑定详情'"
+      :title="$t('MS_PP_BIND_DETAIL', '绑定详情')"
       width="560px"
       destroy-on-close
     >
       <el-descriptions v-if="idpBindingDetail" :column="1" border>
-        <el-descriptions-item :label="'身份源'">
-          {{ formatIdpType(idpBindingDetail.idpType) }}
+        <el-descriptions-item :label="$t('MS_PP_IDP_TYPE', '身份源')">
+          <DictText :value="idpBindingDetail.idpType" usage-code="PASSPORT_IDP_TYPE" :api-method="DictItemApi.select" />
         </el-descriptions-item>
-        <el-descriptions-item :label="'接入形态'">
-          {{ formatBindMode(idpBindingDetail.bindMode) }}
+        <el-descriptions-item :label="$t('MS_PP_BIND_MODE', '接入形态')">
+          <DictText :value="idpBindingDetail.bindMode" usage-code="IDP_BIND_MODE" :api-method="DictItemApi.select" />
         </el-descriptions-item>
-        <el-descriptions-item :label="'企业 ID'">
+        <el-descriptions-item :label="$t('MS_PP_CORP_ID', '企业 ID')">
           {{ idpBindingDetail.corpId || '-' }}
         </el-descriptions-item>
-        <el-descriptions-item :label="'主体标识'">
+        <el-descriptions-item :label="$t('MS_PP_IDP_SUBJECT', '主体标识')">
           {{ idpBindingDetail.idpSubject || '-' }}
         </el-descriptions-item>
-        <el-descriptions-item :label="'用户 ID'">
+        <el-descriptions-item :label="$t('MS_PP_IDP_USER', '用户 ID')">
           {{ idpBindingDetail.idpUserId || '-' }}
         </el-descriptions-item>
-        <el-descriptions-item :label="'应用标识'">
+        <el-descriptions-item :label="$t('MS_PP_APP_CODE', '应用标识')">
           {{ idpBindingDetail.idpApplicationCode || '-' }}
         </el-descriptions-item>
-        <el-descriptions-item :label="'绑定时间'">
+        <el-descriptions-item :label="$t('MS_PP_BIND_TIME', '绑定时间')">
           {{ idpBindingDetail.createTime || '-' }}
         </el-descriptions-item>
-        <el-descriptions-item :label="'更新时间'">
+        <el-descriptions-item :label="$t('G2_FIELD_UPDATE_TIME', '更新时间')">
           {{ idpBindingDetail.updateTime || '-' }}
         </el-descriptions-item>
       </el-descriptions>
@@ -211,7 +213,7 @@
 
     <el-dialog
       v-model="editPassportDialogVisible"
-      :title="'更新账号信息'"
+      :title="$t('MS_PP_UPDATE_ACCOUNT', '更新账号信息')"
       width="600px"
       @close="handleEditPassportClose"
     >
@@ -221,61 +223,52 @@
           :rules="editPassportRules"
           label-width="100px"
         >
-          <el-form-item :label="'用户名'" prop="username">
-            <el-input
-              v-model="editPassportForm.username"
-              :placeholder="'请输入用户名'"
-              maxlength="64"
-              show-word-limit
-            />
-          </el-form-item>
-          <el-form-item :label="'真实姓名'" prop="realName">
+          <el-form-item :label="$t('G2_FIELD_REAL_NAME', '真实姓名')" prop="realName">
             <el-input
               v-model="editPassportForm.realName"
-              :placeholder="'请输入真实姓名'"
+              :placeholder="$t('G2_PH_REALNAME', '请输入真实姓名')"
               maxlength="128"
               show-word-limit
             />
           </el-form-item>
-          <el-form-item :label="'性别'" prop="sex">
-            <el-select
+          <el-form-item :label="$t('G2_FIELD_SEX', '性别')" prop="sex">
+            <DictSelect
               v-model="editPassportForm.sex"
-              :placeholder="'请选择性别'"
+              usage-code="SEX"
+              :api-method="DictItemApi.select"
+              :placeholder="$t('G2_PH_SEX', '请选择性别')"
               style="width: 100%"
-            >
-              <el-option :label="'男性'" value="MALE" />
-              <el-option :label="'女性'" value="FEMALE" />
-            </el-select>
+            />
           </el-form-item>
-          <el-form-item :label="'生日'" prop="birthday">
+          <el-form-item :label="$t('G2_FIELD_BIRTHDAY', '生日')" prop="birthday">
             <el-date-picker
               v-model="editPassportForm.birthday"
               type="date"
-              :placeholder="'请选择生日'"
+              :placeholder="$t('G2_PH_BIRTHDAY', '请选择生日')"
               format="YYYY-MM-DD"
               value-format="YYYY-MM-DD"
               style="width: 100%"
             />
           </el-form-item>
-          <el-form-item :label="'身份证号'" prop="idNo">
+          <el-form-item :label="$t('G2_FIELD_ID_NO', '身份证号')" prop="idNo">
             <el-input
               v-model="editPassportForm.idNo"
-              :placeholder="'请输入身份证号'"
+              :placeholder="$t('G2_PH_IDNO', '请输入身份证号')"
               maxlength="32"
               show-word-limit
             />
           </el-form-item>
-          <el-form-item :label="'手机号'" prop="mobile">
+          <el-form-item :label="$t('G2_FIELD_MOBILE', '手机号')" prop="mobile">
             <el-input
               v-model="editPassportForm.mobile"
-              :placeholder="'请输入手机号'"
+              :placeholder="$t('G2_PH_MOBILE', '请输入手机号')"
               maxlength="32"
             />
           </el-form-item>
-          <el-form-item :label="'邮箱'" prop="email">
+          <el-form-item :label="$t('G2_FIELD_EMAIL', '邮箱')" prop="email">
             <el-input
               v-model="editPassportForm.email"
-              :placeholder="'请输入邮箱'"
+              :placeholder="$t('G2_PH_EMAIL', '请输入邮箱')"
               maxlength="128"
               show-word-limit
             />
@@ -284,10 +277,10 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="editPassportDialogVisible = false">
-            {{ '取消' }}
+            {{ $t('G2_BTN_CANCEL', '取消') }}
           </el-button>
           <el-button type="primary" @click="submitEditPassport" :loading="submitting">
-            {{ '保存' }}
+            {{ $t('G2_BTN_SAVE', '保存') }}
           </el-button>
         </span>
       </template>
@@ -295,7 +288,7 @@
 
     <el-dialog
       v-model="changePasswordDialogVisible"
-      :title="'修改密码'"
+      :title="$t('MS_PP_CHANGE_PWD', '修改密码')"
       width="500px"
       @close="handleChangePasswordClose"
     >
@@ -305,27 +298,27 @@
         :rules="changePasswordRules"
         label-width="100px"
       >
-        <el-form-item :label="'原密码'" prop="oldPassword">
+        <el-form-item :label="$t('G2_FIELD_OLD_PWD', '原密码')" prop="oldPassword">
           <el-input
             v-model="changePasswordForm.oldPassword"
             type="password"
-            :placeholder="'请输入原密码'"
+            :placeholder="$t('G2_PH_OLD_PWD', '请输入原密码')"
             show-password
           />
         </el-form-item>
-        <el-form-item :label="'新密码'" prop="newPassword">
+        <el-form-item :label="$t('G2_FIELD_NEW_PWD', '新密码')" prop="newPassword">
           <el-input
             v-model="changePasswordForm.newPassword"
             type="password"
-            :placeholder="'请输入新密码'"
+            :placeholder="$t('G2_PH_NEW_PWD', '请输入新密码')"
             show-password
           />
         </el-form-item>
-        <el-form-item :label="'确认密码'" prop="confirmPassword">
+        <el-form-item :label="$t('G2_FIELD_CONFIRM_PWD', '确认密码')" prop="confirmPassword">
           <el-input
             v-model="changePasswordForm.confirmPassword"
             type="password"
-            :placeholder="'请再次输入新密码'"
+            :placeholder="$t('G2_PH_CONFIRM_PWD', '请再次输入新密码')"
             show-password
           />
         </el-form-item>
@@ -333,10 +326,10 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="changePasswordDialogVisible = false">
-            {{ '取消' }}
+            {{ $t('G2_BTN_CANCEL', '取消') }}
           </el-button>
           <el-button type="primary" @click="submitChangePassword" :loading="submitting">
-            {{ '确定' }}
+            {{ $t('G2_BTN_CONFIRM', '确定') }}
           </el-button>
         </span>
       </template>
@@ -345,70 +338,46 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import type { FormInstance, FormRules } from 'element-plus'
-import { ElMessage } from 'element-plus'
+import { ref, reactive, computed, onMounted } from 'vue';
+import type { FormInstance, FormRules } from 'element-plus';
+import { ElMessage } from 'element-plus';
+import { t } from '../../platform/i18n'
+import { DictSelect, DictText } from '@g2rain/ui/platform';
+import { getDingTalkBindMode } from '../../shared/env'
+import { DictItemApi } from '../../views/dict/api'
 import { PassportApi, PassportIdpBindingApi } from './passport/api'
 import { useDingTalkPassportBind } from './passport/dingTalk'
 import { getAuthorityUser } from '../../runtime/api/authority-user'
 import type { UserVo, PassportVo } from '../../runtime/api/authority-user'
 import type { PassportIdpBinding } from './passport/type'
-import { getDingTalkBindMode } from '../../shared/env'
 
-const dingTalkBindMode = getDingTalkBindMode()
+const dingTalkBindMode = getDingTalkBindMode() || 'INTERNAL';
 const {
   statusText: dingTalkBindStatus,
   loading: dingTalkBindLoading,
   qrContainerId: dingTalkBindQrId,
   initQr: initDingTalkBindQr,
   teardown: teardownDingTalkBind,
-} = useDingTalkPassportBind(dingTalkBindMode)
-const dingTalkBindVisible = ref(false)
+} = useDingTalkPassportBind(dingTalkBindMode);
+const dingTalkBindVisible = ref(false);
 
 const openDingTalkBind = () => {
-  dingTalkBindVisible.value = true
-}
+  dingTalkBindVisible.value = true;
+};
 
 const onDingTalkBindOpen = () => {
-  initDingTalkBindQr()
-}
+  initDingTalkBindQr();
+};
 
 const onDingTalkBindClosed = () => {
-  teardownDingTalkBind()
-  loadIdpBindings()
-}
+  teardownDingTalkBind();
+  loadIdpBindings();
+};
 
-const idpBindingLoading = ref(false)
-const idpBindingList = ref<PassportIdpBinding[]>([])
-const idpBindingDetailVisible = ref(false)
-const idpBindingDetail = ref<PassportIdpBinding | null>(null)
-
-const IDP_TYPE_LABELS: Record<string, string> = {
-  DINGTALK: '钉钉',
-  FEISHU: '飞书',
-  WECHAT_WORK: '企业微信',
-}
-
-const BIND_MODE_LABELS: Record<string, string> = {
-  INTERNAL: '企业内部应用',
-  THIRD_PARTY: '第三方企业应用',
-}
-
-function formatIdpType(value?: string) {
-  if (!value) return '-'
-  return IDP_TYPE_LABELS[value] ?? value
-}
-
-function formatBindMode(value?: string) {
-  if (!value) return '-'
-  return BIND_MODE_LABELS[value] ?? value
-}
-
-function formatSex(value?: string) {
-  if (value === 'MALE') return '男性'
-  if (value === 'FEMALE') return '女性'
-  return value || '-'
-}
+const idpBindingLoading = ref(false);
+const idpBindingList = ref<PassportIdpBinding[]>([]);
+const idpBindingDetailVisible = ref(false);
+const idpBindingDetail = ref<PassportIdpBinding | null>(null);
 
 function openIdpBindingDetail(row: PassportIdpBinding) {
   idpBindingDetail.value = row;
@@ -440,7 +409,6 @@ const passportInfo = ref<PassportVo | null>(null);
 const editPassportDialogVisible = ref(false);
 const editPassportFormRef = ref<FormInstance | null>(null);
 const editPassportForm = reactive({
-  username: '',
   realName: '',
   sex: '',
   birthday: '',
@@ -450,37 +418,21 @@ const editPassportForm = reactive({
 });
 
 const editPassportRules = computed<FormRules>(() => ({
-  username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { max: 64, message: '用户名长度不能超过64个字符', trigger: 'blur' },
-  ],
   realName: [
-    { max: 128, message: '真实姓名长度不能超过128个字符', trigger: 'blur' },
-  ],
-  sex: [
-    {
-      validator: (_rule, value: string, callback) => {
-        if (value && value !== 'MALE' && value !== 'FEMALE') {
-          callback(new Error('性别只能是MALE（男性）或FEMALE（女性）'));
-        } else {
-          callback();
-        }
-      },
-      trigger: 'change',
-    },
+    { required: true, max: 128, message: t('G2_VLD_REALNAME_LEN', '真实姓名长度不能超过128个字符'), trigger: 'blur' },
   ],
   birthday: [
-    { max: 16, message: '生日长度不能超过16个字符', trigger: 'blur' },
+    { max: 16, message: t('G2_VLD_BIRTHDAY_LEN', '生日长度不能超过16个字符'), trigger: 'blur' },
   ],
   idNo: [
-    { max: 32, message: '身份证号长度不能超过32个字符', trigger: 'blur' },
+    { max: 32, message: t('G2_VLD_IDNO_LEN', '身份证号长度不能超过32个字符'), trigger: 'blur' },
   ],
   mobile: [
-    { max: 32, message: '手机号长度不能超过32个字符', trigger: 'blur' },
+    { max: 32, message: t('G2_VLD_MOBILE_LEN', '手机号长度不能超过32个字符'), trigger: 'blur' },
     {
       validator: (_rule, value: string, callback) => {
         if (value && !/^1[3-9]\d{9}$/.test(value)) {
-          callback(new Error('请输入正确的手机号格式'));
+          callback(new Error(t('G2_VLD_MOBILE_FMT', '请输入正确的手机号格式')));
         } else {
           callback();
         }
@@ -489,13 +441,13 @@ const editPassportRules = computed<FormRules>(() => ({
     },
   ],
   email: [
-    { max: 128, message: '邮箱长度不能超过128个字符', trigger: 'blur' },
+    { max: 128, message: t('G2_VLD_EMAIL_LEN', '邮箱长度不能超过128个字符'), trigger: 'blur' },
     {
       validator: (_rule, value: string, callback) => {
         if (value) {
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!emailRegex.test(value)) {
-            callback(new Error('请输入正确的邮箱格式'));
+            callback(new Error(t('G2_VLD_EMAIL_FMT', '请输入正确的邮箱格式')));
           } else {
             callback();
           }
@@ -518,18 +470,18 @@ const changePasswordForm = reactive({
 });
 
 const changePasswordRules = computed<FormRules>(() => ({
-  oldPassword: [{ required: true, message: '请输入原密码', trigger: 'blur' }],
+  oldPassword: [{ required: true, message: t('G2_VLD_REQ_OLD_PWD', '请输入原密码'), trigger: 'blur' }],
   newPassword: [
-    { required: true, message: '请输入新密码', trigger: 'blur' },
-    { min: 6, message: '密码长度不能少于6位', trigger: 'blur' },
+    { required: true, message: t('G2_VLD_REQ_NEW_PWD', '请输入新密码'), trigger: 'blur' },
+    { min: 6, message: t('G2_VLD_PWD_MIN', '密码长度不能少于6位'), trigger: 'blur' },
   ],
   confirmPassword: [
-    { required: true, message: '请确认新密码', trigger: 'blur' },
+    { required: true, message: t('G2_VLD_REQ_CONFIRM_PWD', '请确认新密码'), trigger: 'blur' },
     {
       validator: (_rule, value: string, callback) => {
 // 验证确认密码是否与新密码一致
         if (value !== changePasswordForm.newPassword) {
-          callback(new Error('两次输入的密码不一致'));
+          callback(new Error(t('G2_VLD_PWD_MISMATCH', '两次输入的密码不一致')));
         } else {
           callback();
         }
@@ -559,12 +511,11 @@ const loadUserInfo = async () => {
 /** 处理更新Passport信息 */
 const handleEditPassport = () => {
   if (!passportInfo.value) {
-    ElMessage.warning('Passport信息未加载，请稍后再试');
+    ElMessage.warning(t('MS_PP_NOT_LOADED', 'Passport信息未加载，请稍后再试'));
     return;
   }
 
   // 填充表单数据
-  editPassportForm.username = passportInfo.value.username || '';
   editPassportForm.realName = passportInfo.value.realName || '';
   editPassportForm.sex = passportInfo.value.sex || '';
   editPassportForm.birthday = passportInfo.value.birthday || '';
@@ -593,7 +544,7 @@ const submitEditPassport = async () => {
       id: passportInfo.value?.id,
       ...editPassportForm,
     });
-    ElMessage.success('保存成功');
+    ElMessage.success(t('G2_MSG_SAVE_OK', '保存成功'));
     editPassportDialogVisible.value = false;
     // 重新加载用户信息
     await loadUserInfo();
@@ -622,7 +573,7 @@ const submitChangePassword = async () => {
   if (!valid) return;
 
   if (!passportInfo.value?.id) {
-    ElMessage.warning('Passport信息未加载，请稍后再试');
+    ElMessage.warning(t('MS_PP_NOT_LOADED', 'Passport信息未加载，请稍后再试'));
     return;
   }
 
@@ -632,7 +583,7 @@ const submitChangePassword = async () => {
       oldPassword: changePasswordForm.oldPassword,
       newPassword: changePasswordForm.newPassword,
     });
-    ElMessage.success('密码修改成功，请重新登录');
+    ElMessage.success(t('MS_PP_PWD_OK', '密码修改成功，请重新登录'));
     changePasswordDialogVisible.value = false;
     // 清空表单
     handleChangePasswordClose();

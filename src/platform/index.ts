@@ -13,8 +13,9 @@ export {
 } from './stores/runtime.store'
 export type { AdapterResolver, ShellMicroAppAdapter } from './apps/adapters'
 export { useSessionStore } from './stores/session.store'
-export { useLocaleStore, SHELL_LOCALE_OPTIONS } from './stores/locale.store'
-export type { ShellLocaleCode, ShellLocaleOption } from './stores/locale.store'
+export { useLocaleStore } from './stores/locale.store'
+export type { LocaleOption } from './stores/locale.store'
+export { useThemeStore } from './stores/theme.store'
 export type { SessionUserSummary, SessionOrganSummary } from './stores/session.store'
 export type {
   MicroAppDefinition,
