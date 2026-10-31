@@ -7,7 +7,7 @@
     <div class="header-right">
       <el-select
         v-model="selectedLocale"
-        :placeholder="$t('MS_HDR_LANG_PH', '选择语言')"
+        :placeholder="$t('G2_PH_LANG', '选择语言')"
         filterable
         class="locale-select"
         :disabled="!localeStore.initialized || localeStore.options.length === 0"

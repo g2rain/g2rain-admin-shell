@@ -10,7 +10,7 @@
         </a>
         {{ $t('MS_AU_LOGOUT_DESC_SUFFIX', '，系统将在') }}
         {{ countdown }}
-        {{ $t('MS_AU_LOGOUT_COUNTDOWN', '秒后自动跳转。') }}
+        {{ $t('G2_AU_LOGOUT_COUNTDOWN', '秒后自动跳转。') }}
       </p>
       <button type="button" class="btn primary" @click="relogin">
         {{ $t('MS_AU_RELOGIN', '重新登录') }}
