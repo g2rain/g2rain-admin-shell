@@ -8,8 +8,8 @@ set -euo pipefail
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$APP_DIR"
 
-IMAGE="g2rain/g2rain-admin-shell"
-TAG="latest"
+IMAGE="ghcr.io/g2rain/g2rain-admin-shell"
+TAG="1.0.0"
 BUILD_MODE="production"
 
 while [[ $# -gt 0 ]]; do
@@ -50,8 +50,11 @@ echo "Tag:     $TAG"
 echo "Mode:    $BUILD_MODE"
 
 export DOCKER_BUILDKIT=1
+VCS_REF="$(git rev-parse HEAD 2>/dev/null || printf 'unknown')"
 docker build \
   --build-arg "VITE_BUILD_MODE=$BUILD_MODE" \
+  --build-arg "IMAGE_VERSION=$TAG" \
+  --build-arg "VCS_REF=$VCS_REF" \
   -t "$IMAGE:$TAG" \
   .
 

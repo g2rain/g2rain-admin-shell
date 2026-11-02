@@ -20,6 +20,7 @@
 - [部署](operations/deployment.md)
 - [排障](operations/troubleshooting.md)
 - [安全边界](security/security-boundaries.md)
+- [发布记录](releases/README.md)
 - [需求入口](requirements/README.md)
 
 Agent 入口见根目录 [AGENTS.md](../AGENTS.md)。跨仓生成契约见 appkit [Main Shell 生成契约](https://github.com/g2rain/g2rain-appkit/blob/main/docs/packages/main-shell-contract.md)。

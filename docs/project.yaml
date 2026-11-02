@@ -3,7 +3,7 @@ name: g2rain-admin-shell
 repository: g2rain/g2rain-admin-shell
 family: frontend-shell
 role: G2rain Main Shell 主应用（由 create-g2rain-app shell 生成）
-version: 1.0.1
+version: 1.0.0
 license: Apache-2.0
 architecture:
   centralRepository: g2rain/g2rain
