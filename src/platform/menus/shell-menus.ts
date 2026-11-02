@@ -4,12 +4,15 @@ import type { WorkspaceView } from '../types/workspace'
 /** Default Shell-local menus — always prepended before backend authority menus. */
 export interface ShellMenuItem {
   key: string
+  /** i18n key，与 main-shell createDefaultMenus 对齐 */
+  menuCode: string
   title: string
   view: WorkspaceView
 }
 
 export interface ShellMenuGroup {
   key: string
+  menuCode: string
   title: string
   children: ShellMenuItem[]
 }
@@ -24,10 +27,12 @@ function isShellMenuGroup(node: ShellMenuNode): node is ShellMenuGroup {
 export const SHELL_MENUS: ShellMenuNode[] = [
   {
     key: 'overview',
+    menuCode: 'main',
     title: '首页',
     view: {
       viewId: 'shell.overview',
       title: '首页',
+      menuCode: 'main',
       kind: 'shell',
       closable: false,
       shellPage: 'overview',
@@ -35,14 +40,17 @@ export const SHELL_MENUS: ShellMenuNode[] = [
   },
   {
     key: 'init',
+    menuCode: 'init',
     title: '初始化',
     children: [
       {
         key: 'passport',
+        menuCode: 'init-passport',
         title: '账号管理',
         view: {
           viewId: 'shell.passport',
           title: '账号管理',
+          menuCode: 'init-passport',
           kind: 'shell',
           closable: true,
           shellPage: 'passport',
@@ -50,10 +58,12 @@ export const SHELL_MENUS: ShellMenuNode[] = [
       },
       {
         key: 'tenant-provision',
+        menuCode: 'init-tenant_provision',
         title: '租户初始化',
         view: {
           viewId: 'shell.tenant-provision',
           title: '租户初始化',
+          menuCode: 'init-tenant_provision',
           kind: 'shell',
           closable: true,
           shellPage: 'tenant-provision',
@@ -63,10 +73,27 @@ export const SHELL_MENUS: ShellMenuNode[] = [
   },
 ]
 
+type ShellPage = NonNullable<WorkspaceView['shellPage']>
+
+/** Shell 页面在壳 Context Path 下的地址，用于地址栏同步与刷新恢复 */
+export const SHELL_PAGE_PATHS: Record<ShellPage, string> = {
+  overview: '/',
+  passport: '/passport',
+  'tenant-provision': '/tenant-provision',
+}
+
+/** 按壳内路由（已去掉 Context Path）查找 Shell 页面视图 */
+export function findShellView(routePath: string): WorkspaceView | undefined {
+  const views = SHELL_MENUS.flatMap((node) =>
+    isShellMenuGroup(node) ? node.children.map((item) => item.view) : [node.view],
+  )
+  return views.find((view) => view.shellPage && SHELL_PAGE_PATHS[view.shellPage] === routePath)
+}
+
 function shellItemAsMenuItem(item: ShellMenuItem): MenuItem {
   return {
     key: `shell.${item.key}`,
-    menuCode: item.key,
+    menuCode: item.menuCode,
     title: item.title,
     type: 'shell',
     shellPage: item.view.shellPage,
@@ -81,7 +108,7 @@ export function shellMenusAsMenuItems(): MenuItem[] {
     if (isShellMenuGroup(node)) {
       return {
         key: `shell.${node.key}`,
-        menuCode: node.key,
+        menuCode: node.menuCode,
         title: node.title,
         type: 'group' as const,
         children: node.children.map(shellItemAsMenuItem),

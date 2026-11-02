@@ -13,6 +13,7 @@ function createOverviewTab(): WorkspaceTab {
     tabId: OVERVIEW_TAB_ID,
     viewId: OVERVIEW_VIEW_ID,
     title: '首页',
+    menuCode: 'main',
     kind: 'shell',
     closable: false,
     shellPage: 'overview',
@@ -40,6 +41,7 @@ export const useWorkspaceStore = defineStore('shell-workspace', () => {
       tabId: `tab.${view.viewId}`,
       viewId: view.viewId,
       title: view.title,
+      menuCode: view.menuCode,
       kind: 'shell',
       closable: view.closable,
       shellPage: view.shellPage,
@@ -66,7 +68,12 @@ export const useWorkspaceStore = defineStore('shell-workspace', () => {
     if (!tab.closable) return
 
     if (tab.kind === 'micro-app' && tab.instanceId) {
-      await useRuntimeStore().destroyInstance(tab.instanceId)
+      try {
+        await useRuntimeStore().destroyInstance(tab.instanceId)
+      } catch (error) {
+        // 销毁失败也要移除 Tab
+        console.error('[WorkspaceStore] destroyInstance failed on closeTab', { tabId, error })
+      }
     }
 
     const wasActive = activeTabId.value === tabId
@@ -173,6 +180,7 @@ export const useWorkspaceStore = defineStore('shell-workspace', () => {
       tabId,
       viewId: view.viewId,
       title: view.title,
+      menuCode: view.menuCode,
       kind: 'micro-app',
       closable: view.closable,
       applicationCode: view.applicationCode,

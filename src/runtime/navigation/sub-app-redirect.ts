@@ -6,13 +6,15 @@
 
 import type { Router } from 'vue-router'
 import { getContextPath, getPathWithContextPath } from '../../shared/env'
-import { stripActiveRule } from '../../shared/url'
+import { setShellParam, stripActiveRule } from '../../shared/url'
 import { microAppInstanceId, microAppViewIdFromMenuKey } from '../../shared/qiankun-id'
 import { useAccessTokenStore } from '../../platform/stores/token.store'
 import { useMenuStore } from '../../platform/stores/menu.store'
 import { useRuntimeStore } from '../../platform/stores/runtime.store'
 import { useWorkspaceStore, OVERVIEW_TAB_ID } from '../../platform/stores/workspace.store'
+import { findShellView } from '../../platform/menus/shell-menus'
 import { syncBrowserAddressForTab } from '../../platform/apps/sync-browser-url'
+import { isDeepLinkLeavingGateway, setDeepLinkLeavingGateway } from './deep-link-flags'
 import type { MenuItem } from '../../platform/types/menu.type'
 
 /** Browser address-bar gateway prefix, e.g. /admin/redirect */
@@ -23,9 +25,21 @@ export function getRedirectGatewayPrefix(): string {
 /** Vue Router path under history base */
 export const REDIRECT_GATEWAY_ROUTE_PREFIX = '/redirect'
 
-export const RETURN_URL_STORAGE_KEY = 'return_url'
+/** 按壳隔离的回跳地址 key：同域多个壳同时重新登录时互不覆盖 */
+export function returnUrlKey(): string {
+  return `return_url:${getContextPath()}`
+}
 
 let navigationRestored = false
+
+/** Single-flight: leave gateway + open tab + replaceState micro path. */
+let gatewayRestorePromise: Promise<boolean> | null = null
+
+export { isDeepLinkLeavingGateway } from './deep-link-flags'
+
+export function isDeepLinkRestorePending(): boolean {
+  return isDeepLinkLeavingGateway() || gatewayRestorePromise !== null || navigationRestored
+}
 
 function splitPathAndSuffix(fullPath: string): { pathname: string; suffix: string } {
   const q = fullPath.indexOf('?')
@@ -130,7 +144,8 @@ export function parseRedirectGateway(fullPath: string): {
   contextPath: string
   internalPath: string
 } | null {
-  const { pathname, suffix } = splitPathAndSuffix(fullPath)
+  // g2shell 只用于选择宿主，不传给子应用
+  const { pathname, suffix } = splitPathAndSuffix(setShellParam(fullPath, null))
   const normalized = normalizePathname(pathname)
 
   let rest = ''
@@ -156,7 +171,7 @@ export function parseRedirectGateway(fullPath: string): {
   }
 
   const contextPath = `/${segments[0]}`
-  const internalPath = stripActiveRule(contextPath, targetPathname)
+  const internalPath = `${stripActiveRule(contextPath, targetPathname)}${suffix}`
 
   return {
     targetFullPath,
@@ -176,7 +191,7 @@ export function saveReturnUrl(fullPath?: string): void {
   }
 
   if (isRedirectGatewayPath(pathname)) {
-    localStorage.setItem(RETURN_URL_STORAGE_KEY, normalizeToBrowserGatewayPath(raw))
+    localStorage.setItem(returnUrlKey(), normalizeToBrowserGatewayPath(raw))
     return
   }
 
@@ -184,28 +199,31 @@ export function saveReturnUrl(fullPath?: string): void {
   const ctx = normalizePathname(getContextPath())
   if (ctx !== '/' && (pathname === ctx || pathname.startsWith(`${ctx}/`))) {
     if (!isRedirectGatewayPath(pathname)) {
-      // Stay within shell — no micro restore needed
+      // 壳内页面也需要在 SSO 后恢复；根页无需覆盖已有待恢复地址。
+      if (normalizePathname(pathname) !== ctx) {
+        localStorage.setItem(returnUrlKey(), raw)
+      }
       return
     }
   }
 
-  localStorage.setItem(RETURN_URL_STORAGE_KEY, buildRedirectGatewayFromTarget(raw))
+  localStorage.setItem(returnUrlKey(), buildRedirectGatewayFromTarget(raw))
 }
 
 export function peekReturnUrl(): string | null {
-  return localStorage.getItem(RETURN_URL_STORAGE_KEY)
+  return localStorage.getItem(returnUrlKey())
 }
 
 export function consumeReturnUrl(): string | null {
-  const value = localStorage.getItem(RETURN_URL_STORAGE_KEY)
+  const value = localStorage.getItem(returnUrlKey())
   if (value) {
-    localStorage.removeItem(RETURN_URL_STORAGE_KEY)
+    localStorage.removeItem(returnUrlKey())
   }
   return value
 }
 
 export function clearReturnUrl(): void {
-  localStorage.removeItem(RETURN_URL_STORAGE_KEY)
+  localStorage.removeItem(returnUrlKey())
 }
 
 export function resetNavigationRestoreState(): void {
@@ -261,7 +279,7 @@ export function findSubMenuItemByTargetPath(
   menuItems: MenuItem[],
   targetFullPath: string,
 ): { menuItem: MenuItem; internalPath: string } | null {
-  const { pathname } = splitPathAndSuffix(targetFullPath)
+  const { pathname, suffix } = splitPathAndSuffix(targetFullPath)
   const normalizedTarget = normalizePathname(pathname)
 
   const candidates: { menuItem: MenuItem; rule: string }[] = []
@@ -288,10 +306,11 @@ export function findSubMenuItemByTargetPath(
   const longestRule = candidates.reduce((a, b) => (a.rule.length >= b.rule.length ? a : b)).rule
   const internalPath = stripActiveRule(longestRule, normalizedTarget)
 
-  const matching = candidates.filter((c) =>
+  const sameRule = candidates.filter((candidate) => candidate.rule === longestRule)
+  const matching = sameRule.filter((c) =>
     menuItemMatchesInternalPath(c.menuItem, internalPath),
   )
-  const pool = matching.length > 0 ? matching : candidates
+  const pool = matching.length > 0 ? matching : sameRule
 
   let bestItem = pool[0].menuItem
   let bestScore = scoreSubMenuItemForInternalPath(bestItem, pool[0].rule, internalPath)
@@ -306,7 +325,7 @@ export function findSubMenuItemByTargetPath(
 
   return {
     menuItem: bestItem,
-    internalPath,
+    internalPath: `${internalPath}${suffix}`,
   }
 }
 
@@ -330,7 +349,7 @@ function canRestoreNavigation(): boolean {
   return true
 }
 
-function openSubTarget(targetFullPath: string, internalPath?: string): boolean {
+function openSubTarget(targetFullPath: string): boolean {
   const menuStore = useMenuStore()
   const workspace = useWorkspaceStore()
   const runtimeStore = useRuntimeStore()
@@ -355,7 +374,8 @@ function openSubTarget(targetFullPath: string, internalPath?: string): boolean {
   // internalPath from findSubMenuItemByTargetPath / parseRedirectGateway is already
   // stripped from the browser URL. Do NOT strip again: internal routes may equal
   // contextPath (activeRule=/member, internal=/member → browser /member/member).
-  const pathToRemember = internalPath ?? resolved.internalPath
+  // 内部路径只按菜单里最长匹配的 activeRule 剥离一次：多段 activeRule（如 /biz/member）不能只去掉第一段
+  const pathToRemember = resolved.internalPath
   const initialRoute = pathToRemember.startsWith('/') ? pathToRemember : `/${pathToRemember}`
 
   const viewId = menuItem.viewId ?? microAppViewIdFromMenuKey(menuItem.key)
@@ -370,6 +390,7 @@ function openSubTarget(targetFullPath: string, internalPath?: string): boolean {
     .openMicroAppView({
       viewId,
       title: menuItem.title,
+      menuCode: menuItem.menuCode,
       kind: 'micro-app',
       closable: menuItem.closable ?? true,
       applicationCode,
@@ -390,31 +411,90 @@ function openSubTarget(targetFullPath: string, internalPath?: string): boolean {
   return true
 }
 
+function openSubAndSyncBrowser(targetFullPath: string): boolean {
+  const opened = openSubTarget(targetFullPath)
+  if (opened) {
+    syncBrowserAddressForTab(useWorkspaceStore().activeTab)
+  }
+  return opened
+}
+
+/** 壳内 Shell 页面地址（如 /admin/passport）→ 打开对应 Shell Tab */
+function openShellTarget(fullPath: string): boolean {
+  const ctx = normalizePathname(getContextPath())
+  let routePath = normalizePathname(splitPathAndSuffix(fullPath).pathname)
+  if (ctx !== '/') {
+    if (routePath !== ctx && !routePath.startsWith(`${ctx}/`)) return false
+    routePath = routePath.slice(ctx.length) || '/'
+  }
+  const view = findShellView(routePath)
+  if (!view) return false
+  useWorkspaceStore().openShellView(view)
+  return true
+}
+
 /**
  * Apply gateway or real micro path to Workspace Tab.
  */
-export function applyNavigationTarget(router: Router, fullPath: string): boolean {
+export function applyNavigationTarget(router: Router, target: string): boolean {
+  // g2shell 只用于选择宿主，不进入子应用的 initialRoute
+  const fullPath = setShellParam(target, null)
   if (isRedirectGatewayPath(fullPath)) {
     const parsed = parseRedirectGateway(fullPath)
     if (!parsed) {
       return false
     }
-    const opened = openSubTarget(parsed.targetFullPath, parsed.internalPath)
+
+    if (gatewayRestorePromise) {
+      return true
+    }
+
+    const leaveGateway =
+      router.currentRoute.value.name === 'SubAppRedirectGateway' ||
+      isRedirectGatewayPath(router.currentRoute.value.fullPath)
+
+    if (leaveGateway) {
+      // Leave gateway first, then open tab + replaceState micro path (single-flight).
+      // Keep deepLinkLeavingGateway until after sync so overview Tab cannot write shell root URL.
+      const run = (async () => {
+        setDeepLinkLeavingGateway(true)
+        try {
+          await router.replace('/')
+          const opened = openSubAndSyncBrowser(parsed.targetFullPath)
+          if (opened) {
+            navigationRestored = true
+          }
+          return opened
+        } catch {
+          return false
+        } finally {
+          setDeepLinkLeavingGateway(false)
+        }
+      })()
+      gatewayRestorePromise = run
+      void run.finally(() => {
+        if (gatewayRestorePromise === run) {
+          gatewayRestorePromise = null
+        }
+      })
+      return true
+    }
+
+    const opened = openSubAndSyncBrowser(parsed.targetFullPath)
     if (opened) {
-      // Leave gateway bare page; keep Workspace address sync as source of truth.
-      if (router.currentRoute.value.name === 'SubAppRedirectGateway') {
-        void router.replace('/').then(() => {
-          syncBrowserAddressForTab(useWorkspaceStore().activeTab)
-        })
-      }
+      navigationRestored = true
     }
     return opened
+  }
+
+  if (openShellTarget(fullPath)) {
+    return true
   }
 
   const menuStore = useMenuStore()
   const subResolved = findSubMenuItemByTargetPath(menuStore.menuItems, fullPath)
   if (subResolved) {
-    return openSubTarget(fullPath, subResolved.internalPath)
+    return openSubTarget(fullPath)
   }
 
   return false
@@ -424,7 +504,10 @@ export function applyNavigationTarget(router: Router, fullPath: string): boolean
  * After SSO / menus ready — restore pending navigation (idempotent).
  */
 export function restoreAfterAuth(router: Router): boolean {
-  if (navigationRestored || !canRestoreNavigation()) {
+  if (navigationRestored || gatewayRestorePromise) {
+    return true
+  }
+  if (!canRestoreNavigation()) {
     return false
   }
 
@@ -442,15 +525,17 @@ export function restoreAfterAuth(router: Router): boolean {
     const browserPath = `${window.location.pathname}${window.location.search}${window.location.hash}`
     applied = applyNavigationTarget(router, browserPath)
   } else if (isRedirectGatewayPath(router.currentRoute.value.fullPath)) {
-    pending = router.currentRoute.value.fullPath
-    applied = applyNavigationTarget(router, pending)
+    // Already on gateway page: let SubAppRedirectGateway own the open (avoid double apply).
+    return false
   } else if (isRedirectGatewayPath(window.location.pathname)) {
     pending = `${window.location.pathname}${window.location.search}${window.location.hash}`
     applied = applyNavigationTarget(router, pending)
   }
 
   if (applied) {
-    navigationRestored = true
+    if (!gatewayRestorePromise) {
+      navigationRestored = true
+    }
     console.info('[SubAppRedirect] navigation restore done')
     return true
   }
@@ -472,6 +557,10 @@ export function handleRedirectGatewayWhenAuthed(
   router: Router,
   gatewayFullPath: string,
 ): boolean {
+  if (navigationRestored || gatewayRestorePromise) {
+    return true
+  }
+
   const parsed = parseRedirectGateway(gatewayFullPath)
   if (!parsed) {
     router.replace('/').catch(() => undefined)

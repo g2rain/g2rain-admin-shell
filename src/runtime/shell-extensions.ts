@@ -1,8 +1,7 @@
 /**
- * Stable composition-root hook for optional Shell capabilities.
- * Default template is a no-op. The `--with-legacy` overlay replaces this file
- * to install AdapterResolver + legacy message bridge without forking RuntimeStore.
+ * Shell extension hook (kept for CLI / template overlay merge points).
+ * Default: AppKit-only — no legacy registry, adapter, or message bridge.
  */
 export function installShellExtensions(): void {
-  // intentionally empty
+  // no-op
 }

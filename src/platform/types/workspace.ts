@@ -17,6 +17,8 @@ export type WorkspaceViewKind = 'shell' | 'micro-app'
 export interface WorkspaceView {
   viewId: string
   title: string
+  /** 菜单编码（i18n key，与 MenuItem.menuCode 一致） */
+  menuCode?: string
   kind: WorkspaceViewKind
   /** Fixed overview tab cannot be closed. */
   closable: boolean
@@ -60,6 +62,8 @@ export interface WorkspaceTab {
   tabId: string
   viewId: string
   title: string
+  /** 菜单编码（i18n key，与 MenuItem.menuCode 一致） */
+  menuCode?: string
   kind: WorkspaceViewKind
   closable: boolean
   shellPage?: WorkspaceView['shellPage']

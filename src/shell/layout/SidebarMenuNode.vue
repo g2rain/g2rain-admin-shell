@@ -7,7 +7,7 @@
       :aria-expanded="hasChildren ? expanded : undefined"
       @click="toggleExpand"
     >
-      <span class="menu-label">{{ item.title }}</span>
+      <span class="menu-label">{{ label }}</span>
       <span v-if="hasChildren" class="menu-caret" aria-hidden="true" />
     </button>
     <div v-if="expanded && item.children?.length" class="menu-children">
@@ -28,7 +28,7 @@
       :aria-expanded="hasChildren ? expanded : undefined"
       @click="onBranchClick"
     >
-      <span class="menu-label">{{ item.title }}</span>
+      <span class="menu-label">{{ label }}</span>
       <span v-if="hasChildren" class="menu-caret" aria-hidden="true" />
     </button>
     <div v-if="expanded && item.children?.length" class="menu-children">
@@ -45,6 +45,9 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { storeToRefs } from 'pinia'
+import { resolveMenuTitle } from '../../platform/i18n'
+import { useLocaleStore } from '../../platform/stores/locale.store'
 import type { MenuItem } from '../../platform/types/menu.type'
 import { microAppViewIdFromMenuKey } from '../../shared/qiankun-id'
 
@@ -56,6 +59,12 @@ const props = defineProps<{
 const emit = defineEmits<{
   select: [item: MenuItem]
 }>()
+
+const { locale: userLocale } = storeToRefs(useLocaleStore())
+const label = computed(() => {
+  void userLocale.value
+  return resolveMenuTitle(props.item)
+})
 
 function resolveViewId(item: MenuItem): string | undefined {
   if (item.type === 'shell') return item.viewId

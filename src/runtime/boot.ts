@@ -13,12 +13,16 @@ import {
 } from '../components/micro-app'
 import { initMainPlatform } from '../platform/main-platform'
 import { initThemeController } from '../platform/theme'
+import { i18n, t } from '../platform/i18n'
 import { useLocaleStore } from '../platform/stores/locale.store'
+import { useThemeStore } from '../platform/stores/theme.store'
 import { useRuntimeStore } from '../platform/stores/runtime.store'
 import { useSessionStore } from '../platform/stores/session.store'
+import { useAccessTokenStore } from '../platform/stores/token.store'
 import { awaitRuntimeEnvConfig } from '../shared/env'
 import { createShellRouter } from './router'
 import { initHttpClient } from './http'
+import { silenceNotified } from './http/notified'
 import { sso } from './auth/sso'
 import { startMenuBoot, setMenuBootRouter } from './boot/menu.boot'
 import { ensureQiankunStarted } from '../platform/apps/qiankun-adapter'
@@ -38,17 +42,20 @@ export async function boot(): Promise<App> {
   rewriteMicroDeepLinkToGateway()
 
   const app = createApp(AppRoot)
+  silenceNotified(app)
   const pinia = createPinia()
   app.use(pinia)
 
   const localeStore = useLocaleStore()
+  app.use(i18n)
   app.use(ElementPlus)
   app.use(G2rainUi, {
-    translate: (_key, fallback) => fallback,
+    translate: (key, fallback) => t(key, fallback),
     locale: () => localeStore.locale,
   })
 
   initThemeController()
+  await useThemeStore().initialize()
   initHttpClient()
 
   const runtimeStore = useRuntimeStore()
@@ -61,7 +68,7 @@ export async function boot(): Promise<App> {
     },
   })
 
-  // Optional overlay (e.g. --with-legacy) installs AdapterResolver / bridges here.
+  // Extension hook (default no-op; AppKit-only).
   installShellExtensions()
 
   startTokenInvalidHandler()
@@ -76,6 +83,13 @@ export async function boot(): Promise<App> {
 
   sso.start()
   await useSessionStore().bootstrapSession()
+  if (useAccessTokenStore().isLogin) {
+    try {
+      await useLocaleStore().initialize()
+    } catch (error) {
+      console.error('[boot] 语言列表初始化失败:', error)
+    }
+  }
   startMenuBoot()
   await router.isReady()
   app.mount('#app')

@@ -2,7 +2,7 @@ import type { MainPublicProps } from '@g2rain/platform/main'
 
 /**
  * Protocol adapter port used by RuntimeStore via AdapterResolver.
- * Input props stay MainPublicProps; legacy may widen only at the loader boundary.
+ * Input props stay MainPublicProps; adapters may widen only at the loader boundary.
  */
 export interface ShellMicroAppMountInput {
   instanceId: string

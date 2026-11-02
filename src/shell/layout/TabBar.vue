@@ -9,12 +9,12 @@
       :class="{ active: tab.tabId === activeTabId }"
       @click="onActivate(tab.tabId)"
     >
-      <span class="title">{{ tab.title }}</span>
+      <span class="title">{{ tabLabels[tab.tabId] }}</span>
       <button
         v-if="tab.closable"
         type="button"
         class="close"
-        :aria-label="`关闭 ${tab.title}`"
+        :aria-label="`关闭 ${tabLabels[tab.tabId]}`"
         @click.stop="onClose(tab.tabId)"
       >
         ×
@@ -24,11 +24,24 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
+import { resolveMenuTitle } from '../../platform/i18n'
+import { useLocaleStore } from '../../platform/stores/locale.store'
 import { useWorkspaceStore } from '../../platform/stores/workspace.store'
 
 const workspace = useWorkspaceStore()
 const { tabs, activeTabId } = storeToRefs(workspace)
+const { locale: userLocale } = storeToRefs(useLocaleStore())
+
+const tabLabels = computed(() => {
+  void userLocale.value
+  const labels: Record<string, string> = {}
+  for (const tab of tabs.value) {
+    labels[tab.tabId] = resolveMenuTitle(tab)
+  }
+  return labels
+})
 
 function onActivate(tabId: string): void {
   workspace.activateTab(tabId)

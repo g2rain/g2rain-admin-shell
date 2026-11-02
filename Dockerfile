@@ -26,6 +26,16 @@ RUN if [ -n "$VITE_BUILD_MODE" ]; then \
 # ------------------------------------------------------------
 FROM openresty/openresty:alpine
 
+ARG IMAGE_VERSION=1.0.0
+ARG VCS_REF=unknown
+LABEL org.opencontainers.image.source="https://github.com/g2rain/g2rain-admin-shell" \
+      org.opencontainers.image.url="https://github.com/g2rain/g2rain-admin-shell" \
+      org.opencontainers.image.title="g2rain-admin-shell" \
+      org.opencontainers.image.description="G2rain Main Shell browser entry image" \
+      org.opencontainers.image.version="${IMAGE_VERSION}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.licenses="Apache-2.0"
+
 RUN set -eux; \
     sed -i 's|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g' /etc/apk/repositories; \
     apk update; \

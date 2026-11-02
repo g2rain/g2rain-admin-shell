@@ -2,7 +2,7 @@ import type { MainPublicProps } from '@g2rain/platform/main'
 
 /**
  * Props accepted by the shared qiankun loader.
- * AppKit path uses MainPublicProps; legacy protocol adapters may add private fields
+ * AppKit path uses MainPublicProps; protocol adapters may add private fields
  * only at the loader boundary (never on Workspace / Definition / AppKit types).
  */
 export type LoaderMountProps = Readonly<MainPublicProps> & Readonly<Record<string, unknown>>

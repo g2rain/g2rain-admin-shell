@@ -9,7 +9,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
 
-g2rain 官方 Vue 3 Main Shell 模板：Header / Sidebar / Tab / Workspace / Footer、Pinia Workspace 模型、`@g2rain/platform/main` + `@g2rain/http` + `@g2rain/theme` / `@g2rain/ui` 基线接入点，以及 qiankun RuntimeAdapter 扩展位。
+G2rain（谷雨）是面向企业的开源智能体平台，连接模型、知识与业务工具，以 SaaS 基座和应用开发工具链支撑智能应用落地。`g2rain-admin-shell` 是其中的 Vue 3 Main Shell 模板/浏览器入口基线：提供 Header / Sidebar / Tab / Workspace / Footer、Pinia Workspace 模型、`@g2rain/platform/main` + `@g2rain/http` + `@g2rain/theme` / `@g2rain/ui` 接入点，以及 qiankun RuntimeAdapter 扩展位。它不单独提供平台的知识库、智能体、IAM、网关或业务服务能力；平台能力与开放状态以 [G2rain 主仓库](https://github.com/g2rain/g2rain) 为准。
 
 本项目由 [g2rain-app-cli](https://github.com/g2rain/g2rain-app-cli) 基于 [g2rain-shell-template](https://github.com/g2rain/g2rain-shell-template) 生成。权威生产参考壳是 [g2rain-main-shell](https://github.com/g2rain/g2rain-main-shell)；跨仓架构契约见中央 [Main Shell 契约](https://github.com/g2rain/g2rain/blob/main/docs/architecture/profiles/frontend-shell/main-shell-contract.md)，appkit 接线细节见其 [Main Shell 接入](https://github.com/g2rain/g2rain-appkit/blob/main/docs/integration/main.md)。
 
@@ -79,6 +79,29 @@ npm run build
 | `npm run build` | `vue-tsc --noEmit` + `vite build` |
 | `npm run preview` | 预览构建产物 |
 
-## 许可证
+## GHCR 镜像
 
-本项目采用 [Apache License 2.0](LICENSE) 开源。
+- 镜像地址：`ghcr.io/g2rain/g2rain-admin-shell`。
+- 稳定版使用 `1.0.0` 这类版本标签，并同时发布 `sha-<完整提交 SHA>` 可追溯标签；不会更新 `latest`。
+- 包公开后可拉取：`docker pull ghcr.io/g2rain/g2rain-admin-shell:1.0.0`。
+- 只有推送精确格式的 `v<major>.<minor>.<patch>` Git tag 才会触发发布；tag 提交必须在 `main` 历史中，且包含同名发布说明。
+
+完整的构建、GHCR 权限、首次公开、发布顺序、配置与部署说明见[部署文档](docs/operations/deployment.md#github-container-registryghcr发布)。
+
+## 许可证与作者
+
+本项目采用 [Apache License 2.0](LICENSE) 开源。版权归属：Copyright 2025-2026 g2rain.com。
+
+### 作者
+
+| 作者 | 联系 |
+| --- | --- |
+| Jagger | g2rain_developer@163.com · [g2rain.com](https://www.g2rain.com/) |
+| Alpha | [g2rain.com](https://www.g2rain.com/) |
+
+### 联系
+
+- 官网：[g2rain.com](https://www.g2rain.com)
+- Issues：[GitHub Issues](https://github.com/g2rain/g2rain/issues)
+- 讨论：[GitHub Discussions](https://github.com/g2rain/g2rain/discussions)
+- 邮箱：g2rain_developer@163.com
