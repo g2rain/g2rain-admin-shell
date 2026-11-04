@@ -37,7 +37,6 @@ LABEL org.opencontainers.image.source="https://github.com/g2rain/g2rain-admin-sh
       org.opencontainers.image.licenses="Apache-2.0"
 
 RUN set -eux; \
-    sed -i 's|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g' /etc/apk/repositories; \
     apk update; \
     apk add --no-cache \
         curl git perl gettext ca-certificates openssl openssl-dev \
