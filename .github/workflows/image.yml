@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Check out source
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -46,19 +46,19 @@ jobs:
             echo "Tag '$GITHUB_REF_NAME' points to a commit that is not in origin/main history." >&2
             exit 1
           fi
-          if [[ ! -s "docs/releases/$GITHUB_REF_NAME.md" ]]; then
-            echo "Missing release notes: docs/releases/$GITHUB_REF_NAME.md. Add the matching non-empty file to main before creating the tag." >&2
+          if ! git show "${tag_commit}:docs/releases/${GITHUB_REF_NAME}.md" | grep -q '[^[:space:]]'; then
+            echo "Missing release notes: docs/releases/$GITHUB_REF_NAME.md must be non-empty at the tagged commit." >&2
             exit 1
           fi
-          package_version="$(node --input-type=module -e "import pkg from './package.json' with { type: 'json' }; process.stdout.write(pkg.version)")"
-          if [[ "$package_version" != "${GITHUB_REF_NAME#v}" ]]; then
-            echo "Tag '$GITHUB_REF_NAME' does not match package.json version '$package_version'." >&2
+          project_version="$(node --input-type=module -e 'import fs from "node:fs"; process.stdout.write(JSON.parse(fs.readFileSync("package.json", "utf8")).version)')"
+          if [[ "$project_version" != "${GITHUB_REF_NAME#v}" ]]; then
+            echo "Tag '$GITHUB_REF_NAME' does not match package.json version '$project_version'." >&2
             exit 1
           fi
           echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
-          echo "version=$package_version" >> "$GITHUB_OUTPUT"
+          echo "version=$project_version" >> "$GITHUB_OUTPUT"
           echo "commit=$tag_commit" >> "$GITHUB_OUTPUT"
-          echo "sha_tag=sha-${tag_commit}" >> "$GITHUB_OUTPUT"
+          echo "sha_tag=sha-$tag_commit" >> "$GITHUB_OUTPUT"
       - name: Install dependencies
         run: npm ci
       - name: Build and type-check
@@ -82,10 +82,11 @@ jobs:
         run: |
           docker push "${{ steps.image.outputs.name }}:${{ steps.image.outputs.version }}"
           docker push "${{ steps.image.outputs.name }}:${{ steps.image.outputs.sha_tag }}"
-      - name: Report published image
+      - name: Record published image
+        if: success()
         run: |
           {
-            echo "## GHCR publication complete"
+            echo '## Container image published'
             echo
             echo "- \`${{ steps.image.outputs.name }}:${{ steps.image.outputs.version }}\`"
             echo "- \`${{ steps.image.outputs.name }}:${{ steps.image.outputs.sha_tag }}\`"
