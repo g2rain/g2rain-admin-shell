@@ -32,7 +32,7 @@ export class PassportApi {
 export class PassportIdpBindingApi {
   static async listByPassport(passportId: number): Promise<PassportIdpBinding[]> {
     const http = getHttpClient()
-    const params: PassportIdpBindingQuery = { passportId }
+    const params: Record<string, unknown> = { passportId } satisfies PassportIdpBindingQuery
     const res = await http.client.get<PassportIdpBinding[]>(
       '/basis/passport_idp_binding/list',
       params,
